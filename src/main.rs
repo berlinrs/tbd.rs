@@ -4,6 +4,7 @@ extern crate futures;
 
 mod mini_exec;
 mod types;
+mod query;
 
 use std::future::FutureObj;
 use std::task::Executor;
@@ -12,6 +13,7 @@ use futures::stream;
 use futures::future;
 
 use crate::types::*;
+use crate::query::*;
 
 #[derive(Debug, Clone)]
 struct Post {
@@ -58,7 +60,6 @@ impl Relation<BlogRepository> for Posts {
     }
 }
 
-
 struct Comments;
 
 impl Relation<BlogRepository> for Comments {
@@ -77,6 +78,21 @@ impl Relation<BlogRepository> for Comments {
         future::ready(repo.gateway.comments.iter().find(|c| c.id == id).cloned())
     }
 }
+
+struct PostComments;
+
+impl HasManyRelationShip<BlogRepository, BlogRepository> for PostComments {
+    type Of = Posts;
+    type To = Comments;
+}
+
+struct CommentPost;
+
+impl BelongsToRelationship<BlogRepository, BlogRepository> for CommentPost {
+    type Source = Comments;
+    type To = Posts;
+}
+
 
 async fn read_from_repos() {
     let mut posts = vec![];
@@ -105,6 +121,8 @@ async fn read_from_repos() {
 
     let gateway = MemoryGateway { posts, comments };
     let repos = BlogRepository { gateway };
+
+    let query = select::<Post>().from(& Posts);
 
     let f1 = Posts.all(&repos).for_each(|item|{
         println!("{:?}", item);

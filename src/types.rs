@@ -19,7 +19,12 @@ pub trait Relation<Repo: Repository> {
     fn one(&self, id: Self::PrimaryKey, repo: &Repo) -> Self::Future;
 }
 
-//pub trait Relationship<'a> {
-//    type Left: Relation + 'a;
-//    type Right: Relation + 'a;
-//}
+pub trait HasManyRelationShip<RepoOf: Repository, RepoTo: Repository> {
+    type Of: Relation<RepoOf>;
+    type To: Relation<RepoTo>;
+}
+
+pub trait BelongsToRelationship<RepoSource: Repository, RepoTo: Repository> {
+    type Source: Relation<RepoSource>;
+    type To: Relation<RepoTo>;
+}
