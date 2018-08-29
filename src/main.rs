@@ -1,4 +1,4 @@
-#![feature(rust_2018_preview, async_await, await_macro, futures_api, pin, arbitrary_self_types)]
+#![feature(rust_2018_preview, async_await, await_macro, futures_api, pin, arbitrary_self_types, specialization)]
 
 extern crate futures;
 

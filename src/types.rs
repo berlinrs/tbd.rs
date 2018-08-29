@@ -11,6 +11,8 @@ pub trait Relation {
     type Model;
 }
 
+pub trait SqlRepos {}
+
 pub trait Stores<R: Relation>: Repository {
     type Error;
 

@@ -1,6 +1,4 @@
-use crate::types::Relation;
-use crate::types::Repository;
-use crate::types::Stores;
+use crate::types::*;
 use futures::prelude::*;
 
 pub struct Select<M> {
@@ -23,19 +21,30 @@ pub struct SelectFrom<R>
    relation: std::marker::PhantomData<R>,
 }
 
-impl<R> Execute for SelectFrom<R>
-    where R: Relation {
-    type R = R;
+impl<Repos, R> Execute<Repos, R> for SelectFrom<R>
+    where R: Relation,
+          Repos: Stores<R> {
 
-    fn execute<Repos>(&self, repos: &Repos) -> <Repos as Stores<Self::R>>::Stream
-        where Repos: Stores<Self::R> {
+    default fn execute(&self, repos: &Repos) -> <Repos as Stores<R>>::Stream
+        where Repos: Stores<R> {
         repos.all()
     }
 }
 
-pub trait Execute {
-    type R: Relation;
+impl<Repos, R> Execute<Repos, R> for SelectFrom<R>
+    where R: Relation,
+          Repos: Stores<R> + SqlRepos {
 
-    fn execute<Repos>(&self, repos: &Repos) -> <Repos as Stores<Self::R>>::Stream
-        where Repos: Stores<Self::R>;
+    fn execute(&self, repos: &Repos) -> <Repos as Stores<R>>::Stream
+        where Repos: Stores<R> {
+        repos.all()
+    }
+}
+
+pub trait Execute<Repos, R>
+    where R: Relation,
+          Repos: Stores<R> {
+
+    fn execute(&self, repos: &Repos) -> <Repos as Stores<R>>::Stream
+        where Repos: Stores<R>;
 }
