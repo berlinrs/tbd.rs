@@ -23,11 +23,19 @@ pub struct SelectFrom<R>
    relation: std::marker::PhantomData<R>,
 }
 
-impl<R> SelectFrom<R>
+impl<R> Execute for SelectFrom<R>
     where R: Relation {
+    type R = R;
 
-    pub fn execute<Repos>(&self, repos: &Repos) -> impl Stream<Item = R::Model>
-        where Repos: Stores<R> {
+    fn execute<Repos>(&self, repos: &Repos) -> <Repos as Stores<Self::R>>::Stream
+        where Repos: Stores<Self::R> {
         repos.all()
     }
+}
+
+pub trait Execute {
+    type R: Relation;
+
+    fn execute<Repos>(&self, repos: &Repos) -> <Repos as Stores<Self::R>>::Stream
+        where Repos: Stores<Self::R>;
 }
