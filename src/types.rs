@@ -6,25 +6,28 @@ pub trait Repository {}
 
 pub trait Gateway {}
 
-pub trait Relation<Repo: Repository> {
+pub trait Relation {
     type PrimaryKey;
     type Model;
+}
+
+pub trait Stores<R: Relation>: Repository {
     type Error;
 
-    type Stream: Stream<Item = Self::Model>;
-    type Future: Future<Output = Option<Self::Model>>;
+    type Stream: Stream<Item = R::Model>;
+    type Future: Future<Output = Option<R::Model>>;
 
-    fn all(&self, repo: &Repo) -> Self::Stream;
-    
-    fn one(&self, id: Self::PrimaryKey, repo: &Repo) -> Self::Future;
+    fn all(&self) -> Self::Stream;
+
+    fn one(&self, id: R::PrimaryKey) -> Self::Future;
 }
 
-pub trait HasManyRelationShip<RepoOf: Repository, RepoTo: Repository> {
-    type Of: Relation<RepoOf>;
-    type To: Relation<RepoTo>;
+pub trait HasManyRelationShip {
+    type Of: Relation;
+    type To: Relation;
 }
 
-pub trait BelongsToRelationship<RepoSource: Repository, RepoTo: Repository> {
-    type Source: Relation<RepoSource>;
-    type To: Relation<RepoTo>;
+pub trait BelongsToRelationship {
+    type Source: Relation;
+    type To: Relation;
 }

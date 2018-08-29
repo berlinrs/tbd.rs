@@ -43,52 +43,58 @@ impl Repository for BlogRepository {}
 
 struct Posts;
 
-impl Relation<BlogRepository> for Posts {
+impl Relation for Posts {
     type PrimaryKey = u64;
     type Model = Post;
+}
+
+impl Stores<Posts> for BlogRepository {
     type Error = ();
 
     type Stream = stream::Iter<std::vec::IntoIter<Post>>;
     type Future = futures::future::Ready<Option<Post>>;
 
-    fn all(&self, repo: &BlogRepository) -> Self::Stream {
-        stream::iter(repo.gateway.posts.clone().into_iter())
+    fn all(&self) -> Self::Stream {
+        stream::iter(self.gateway.posts.clone().into_iter())
     }
 
-    fn one(&self, id: u64, repo: &BlogRepository) -> Self::Future {
-        future::ready(repo.gateway.posts.iter().find(|p| p.id == id).cloned())
+    fn one(&self, id: u64) -> Self::Future {
+        future::ready(self.gateway.posts.iter().find(|p| p.id == id).cloned())
     }
 }
 
 struct Comments;
 
-impl Relation<BlogRepository> for Comments {
+impl Relation for Comments {
     type PrimaryKey = u64;
     type Model = Comment;
+}
+
+impl Stores<Comments> for BlogRepository {
     type Error = ();
 
     type Stream = stream::Iter<std::vec::IntoIter<Comment>>;
     type Future = futures::future::Ready<Option<Comment>>;
 
-    fn all(&self, repo: &BlogRepository) -> Self::Stream {
-        stream::iter(repo.gateway.comments.clone().into_iter())
+    fn all(&self) -> Self::Stream {
+        stream::iter(self.gateway.comments.clone().into_iter())
     }
 
-    fn one(&self, id: u64, repo: &BlogRepository) -> Self::Future {
-        future::ready(repo.gateway.comments.iter().find(|c| c.id == id).cloned())
+    fn one(&self, id: u64) -> Self::Future {
+        future::ready(self.gateway.comments.iter().find(|c| c.id == id).cloned())
     }
 }
 
 struct PostComments;
 
-impl HasManyRelationShip<BlogRepository, BlogRepository> for PostComments {
+impl HasManyRelationShip for PostComments {
     type Of = Posts;
     type To = Comments;
 }
 
 struct CommentPost;
 
-impl BelongsToRelationship<BlogRepository, BlogRepository> for CommentPost {
+impl BelongsToRelationship for CommentPost {
     type Source = Comments;
     type To = Posts;
 }
@@ -122,7 +128,7 @@ async fn read_from_repos() {
     let gateway = MemoryGateway { posts, comments };
     let repos = BlogRepository { gateway };
 
-    let query = select::<Post>().from(&Posts);
+    let query = select::<Post>().from::<Posts>();
 
     let q1 = query.execute(&repos).for_each(|item| {
         println!("{:?}", item);
@@ -131,21 +137,21 @@ async fn read_from_repos() {
 
     await!(q1);
 
-    let f1 = Posts.all(&repos).for_each(|item|{
+    let f1 = <BlogRepository as Stores<Posts>>::all(&repos).for_each(|item|{
         println!("{:?}", item);
         future::ready(())
     });
 
     await!(f1);
 
-    let f2 = Comments.all(&repos).for_each(|item|{
+    let f2 = <BlogRepository as Stores<Comments>>::all(&repos).for_each(|item|{
         println!("{:?}", item);
         future::ready(())
     });
 
     await!(f2);
 
-    let model = await!(Comments.one(2, &repos));
+    let model = await!(<BlogRepository as Stores<Comments>>::one(&repos, 2));
 
     println!("{:?}", model);
 }

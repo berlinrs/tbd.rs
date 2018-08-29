@@ -1,5 +1,6 @@
 use crate::types::Relation;
 use crate::types::Repository;
+use crate::types::Stores;
 use futures::prelude::*;
 
 pub struct Select<M> {
@@ -11,25 +12,22 @@ pub fn select<M>() -> Select<M> {
 }
 
 impl<M> Select<M> {
-    pub fn from<R, Repos>(self, relation: &R) -> SelectFrom<Repos, R>
-        where R: Relation<Repos, Model = M>,
-              Repos: Repository {
-            SelectFrom { relation, phantom: std::marker::PhantomData }
+    pub fn from<R>(self) -> SelectFrom<R>
+        where R: Relation<Model = M> {
+            SelectFrom { relation: std::marker::PhantomData }
     }
 }
 
-pub struct SelectFrom<'a, Repos, R>
-   where Repos: Repository,
-         R: Relation<Repos> + 'a {
-    relation: &'a R,
-    phantom: std::marker::PhantomData<Repos>,
+pub struct SelectFrom<R>
+   where R: Relation {
+   relation: std::marker::PhantomData<R>,
 }
 
-impl<'a, Repos, R> SelectFrom<'a, Repos, R>
-    where Repos: Repository,
-          R: Relation<Repos> + 'a {
+impl<R> SelectFrom<R>
+    where R: Relation {
 
-    pub fn execute(&self, repos: &Repos) -> impl Stream<Item = R::Model> {
-        self.relation.all(repos)
+    pub fn execute<Repos>(&self, repos: &Repos) -> impl Stream<Item = R::Model>
+        where Repos: Stores<R> {
+        repos.all()
     }
 }
