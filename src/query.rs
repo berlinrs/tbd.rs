@@ -1,5 +1,6 @@
 use crate::types::Relation;
 use crate::types::Repository;
+use futures::prelude::*;
 
 pub struct Select<M> {
     m: std::marker::PhantomData<M>,
@@ -17,7 +18,18 @@ impl<M> Select<M> {
     }
 }
 
-pub struct SelectFrom<'a, Repos: Repository, R: Relation<Repos> + 'a> {
+pub struct SelectFrom<'a, Repos, R>
+   where Repos: Repository,
+         R: Relation<Repos> + 'a {
     relation: &'a R,
     phantom: std::marker::PhantomData<Repos>,
+}
+
+impl<'a, Repos, R> SelectFrom<'a, Repos, R>
+    where Repos: Repository,
+          R: Relation<Repos> + 'a {
+
+    pub fn execute(&self, repos: &Repos) -> impl Stream<Item = R::Model> {
+        self.relation.all(repos)
+    }
 }

@@ -122,7 +122,14 @@ async fn read_from_repos() {
     let gateway = MemoryGateway { posts, comments };
     let repos = BlogRepository { gateway };
 
-    let query = select::<Post>().from(& Posts);
+    let query = select::<Post>().from(&Posts);
+
+    let q1 = query.execute(&repos).for_each(|item| {
+        println!("{:?}", item);
+        future::ready(())
+    });
+
+    await!(q1);
 
     let f1 = Posts.all(&repos).for_each(|item|{
         println!("{:?}", item);
