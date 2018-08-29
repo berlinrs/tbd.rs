@@ -35,6 +35,16 @@ impl<Repos, R> Execute<Repos, R> for SelectFrom<R>
     where R: Relation,
           Repos: Stores<R> + SqlRepos {
 
+    default fn execute(&self, repos: &Repos) -> <Repos as Stores<R>>::Stream
+        where Repos: Stores<R> {
+        repos.all()
+    }
+}
+
+impl<Repos, R> Execute<Repos, R> for SelectFrom<R>
+    where R: Relation,
+          Repos: Stores<R> + SqlRepos + PostGres {
+
     fn execute(&self, repos: &Repos) -> <Repos as Stores<R>>::Stream
         where Repos: Stores<R> {
         repos.all()

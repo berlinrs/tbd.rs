@@ -13,6 +13,8 @@ pub trait Relation {
 
 pub trait SqlRepos {}
 
+pub trait PostGres: SqlRepos {}
+
 pub trait Stores<R: Relation>: Repository {
     type Error;
 
