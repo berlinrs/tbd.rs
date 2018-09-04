@@ -1,13 +1,11 @@
-#![feature(rust_2018_preview, async_await, await_macro, futures_api, pin, arbitrary_self_types)]
-
 use std::future::{Future, FutureObj};
-use std::mem::PinMut;
+use std::pin::PinMut;
 
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{sync_channel, SyncSender, SendError, Receiver};
 use std::task::{
     self,
-    Executor as ExecutorTrait,
+    Spawn,
     local_waker_from_nonlocal,
     Poll,
     SpawnErrorKind,
@@ -23,7 +21,7 @@ pub struct Executor {
     task_receiver: Receiver<Arc<Task>>,
 }
 
-impl<'a> ExecutorTrait for &'a Executor {
+impl<'a> Spawn for &'a Executor {
     fn spawn_obj(&mut self, future: FutureObj<'static, ()>)
         -> Result<(), SpawnObjError>
     {

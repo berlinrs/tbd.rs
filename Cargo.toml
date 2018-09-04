@@ -1,10 +1,2 @@
-cargo-features = [ "edition" ]
-
-[package]
-name = "tbd-again"
-version = "0.1.0"
-authors = ["Florian Gilcher <florian.gilcher@asquera.de>"]
-edition = "2018"
-
-[dependencies]
-futures-preview = "0.3.0-alpha.2"
+[workspace]
+members = ["tbd-core", "tbd-sqlite3", "tbd-test"]

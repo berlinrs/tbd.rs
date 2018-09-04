@@ -1,19 +1,14 @@
-#![feature(rust_2018_preview, async_await, await_macro, futures_api, pin, arbitrary_self_types, specialization)]
-
-extern crate futures;
-
-mod mini_exec;
-mod types;
-mod query;
+#![feature(async_await, await_macro, futures_api, pin, arbitrary_self_types, specialization)]
 
 use std::future::FutureObj;
-use std::task::Executor;
+use std::task::Spawn;
 use futures::StreamExt;
 use futures::stream;
 use futures::future;
 
-use crate::types::*;
-use crate::query::*;
+use tbd_core::types::*;
+use tbd_core::query::*;
+use tbd_core::mini_exec;
 
 #[derive(Debug, Clone)]
 struct Post {

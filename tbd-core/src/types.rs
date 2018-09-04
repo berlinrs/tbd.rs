@@ -13,7 +13,11 @@ pub trait Relation {
 
 pub trait SqlRepos {}
 
+pub trait Query {}
+
 pub trait PostGres: SqlRepos {}
+
+pub trait PostGresQuery: Query {}
 
 pub trait Stores<R: Relation>: Repository {
     type Error;
@@ -25,6 +29,12 @@ pub trait Stores<R: Relation>: Repository {
 
     fn one(&self, id: R::PrimaryKey) -> Self::Future;
 }
+
+trait Contains<R> {}
+
+impl<T, R> Contains<R> for T where T: Stores<R>, R: Relation {}
+
+impl<A, B, T> Contains<(A, B)> for T where T: Contains<A> + Contains<B> {} 
 
 pub trait HasManyRelationShip {
     type Of: Relation;
