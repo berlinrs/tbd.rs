@@ -30,11 +30,49 @@ struct MemoryGateway  {
 
 impl Gateway for MemoryGateway {}
 
+
+impl ExecuteAll<Post> for MemoryGateway {
+    type Error = ();
+    type Stream = stream::Iter<std::vec::IntoIter<Post>>;
+
+    fn execute_query<Q>(&self, q: &Q) -> Self::Stream
+        where Q: Query<QueryMarker=All, ReturnType=Post> {
+        stream::iter(self.posts.clone().into_iter())
+    }
+}
+
+impl ExecuteAll<Comment> for MemoryGateway {
+    type Error = ();
+    type Stream = stream::Iter<std::vec::IntoIter<Comment>>;
+
+    fn execute_query<Q>(&self, q: &Q) -> Self::Stream
+        where Q: Query<QueryMarker=All, ReturnType=Comment> {
+        stream::iter(self.comments.clone().into_iter())
+    }
+}
+
+impl ExecuteOne<Post, FindParameters<u64>> for MemoryGateway {
+    type Error = ();
+    type Future = futures::future::Ready<Option<Post>>;
+
+    fn execute_query<Q>(&self, q: &Q) -> Self::Future
+        where Q: Query<QueryMarker=One, ReturnType=Post, Parameters=FindParameters<u64>> {
+        future::ready(self.posts.iter().find(|p| p.id == q.parameters().id).cloned())
+    }
+}
+
+
 struct BlogRepository {
     gateway: MemoryGateway
 }
 
-impl Repository for BlogRepository {}
+impl Repository for BlogRepository {
+    type Gateway = MemoryGateway;
+
+    fn gateway(&self) -> &MemoryGateway {
+        &self.gateway
+    }
+}
 
 struct Posts;
 
@@ -44,18 +82,18 @@ impl Relation for Posts {
 }
 
 impl Stores<Posts> for BlogRepository {
-    type Error = ();
+    // type Error = ();
 
-    type Stream = stream::Iter<std::vec::IntoIter<Post>>;
-    type Future = futures::future::Ready<Option<Post>>;
+    // type Stream = stream::Iter<std::vec::IntoIter<Post>>;
+    // type Future = futures::future::Ready<Option<Post>>;
 
-    fn all(&self) -> Self::Stream {
-        stream::iter(self.gateway.posts.clone().into_iter())
-    }
+    // fn all(&self) -> Self::Stream {
+    //     stream::iter(self.gateway.posts.clone().into_iter())
+    // }
 
-    fn one(&self, id: u64) -> Self::Future {
-        future::ready(self.gateway.posts.iter().find(|p| p.id == id).cloned())
-    }
+    // fn one(&self, id: u64) -> Self::Future {
+    //     future::ready(self.gateway.posts.iter().find(|p| p.id == id).cloned())
+    // }
 }
 
 struct Comments;
@@ -66,18 +104,18 @@ impl Relation for Comments {
 }
 
 impl Stores<Comments> for BlogRepository {
-    type Error = ();
+//     type Error = ();
 
-    type Stream = stream::Iter<std::vec::IntoIter<Comment>>;
-    type Future = futures::future::Ready<Option<Comment>>;
+//     type Stream = stream::Iter<std::vec::IntoIter<Comment>>;
+//     type Future = futures::future::Ready<Option<Comment>>;
 
-    fn all(&self) -> Self::Stream {
-        stream::iter(self.gateway.comments.clone().into_iter())
-    }
+//     fn all(&self) -> Self::Stream {
+//         stream::iter(self.gateway.comments.clone().into_iter())
+//     }
 
-    fn one(&self, id: u64) -> Self::Future {
-        future::ready(self.gateway.comments.iter().find(|c| c.id == id).cloned())
-    }
+//     fn one(&self, id: u64) -> Self::Future {
+//         future::ready(self.gateway.comments.iter().find(|c| c.id == id).cloned())
+//     }
 }
 
 struct PostComments;
@@ -125,30 +163,45 @@ async fn read_from_repos() {
 
     let query = select::<Post>().from::<Posts>();
 
-    let q1 = query.execute(&repos).for_each(|item| {
+    let e1 = query.execute(&repos).for_each(|item| {
         println!("{:?}", item);
         future::ready(())
     });
 
-    await!(q1);
+    await!(e1);
 
-    let f1 = <BlogRepository as Stores<Posts>>::all(&repos).for_each(|item|{
+    let query2 = select::<Comment>().from::<Comments>();
+
+    let e2 = query2.execute(&repos).for_each(|item| {
         println!("{:?}", item);
         future::ready(())
     });
 
-    await!(f1);
+    await!(e2);
 
-    let f2 = <BlogRepository as Stores<Comments>>::all(&repos).for_each(|item|{
-        println!("{:?}", item);
-        future::ready(())
-    });
+    let query3 = select::<Post>().from::<Posts>().find(2);
 
-    await!(f2);
+    let e3 = query3.execute(&repos);
 
-    let model = await!(<BlogRepository as Stores<Comments>>::one(&repos, 2));
+    println!("{:?}", await!(e3));
 
-    println!("{:?}", model);
+    // let f1 = <BlogRepository as Stores<Posts>>::all(&repos).for_each(|item|{
+    //     println!("{:?}", item);
+    //     future::ready(())
+    // });
+
+    // await!(f1);
+
+    // let f2 = <BlogRepository as Stores<Comments>>::all(&repos).for_each(|item|{
+    //     println!("{:?}", item);
+    //     future::ready(())
+    // });
+
+    // await!(f2);
+
+    // let model = await!(<BlogRepository as Stores<Comments>>::one(&repos, 2));
+
+    // println!("{:?}", model);
 }
 
 fn main() {

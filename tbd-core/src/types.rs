@@ -5,27 +5,25 @@ pub trait Finite {}
 pub trait Gateway {}
 
 pub trait Repository {
-    type Gateway: Gateway + ExecuteAll + ExecuteOne;
+    type Gateway: Gateway;
 
     fn gateway(&self) -> &Self::Gateway;
 }
 
-pub trait ExecuteAll: Gateway {
+pub trait ExecuteAll<ReturnType>: Gateway {
     type Error;
-    type ReturnType;
-    type Stream: Stream<Item = Self::ReturnType>;
+    type Stream: Stream<Item = ReturnType>;
 
     fn execute_query<Q>(&self, q: &Q) -> Self::Stream
-        where Q: Query<QueryMarker=All, ReturnType=Self::ReturnType>;
+        where Q: Query<QueryMarker=All, ReturnType=ReturnType>;
 }
 
-pub trait ExecuteOne: Gateway {
+pub trait ExecuteOne<ReturnType, Parameters>: Gateway {
     type Error;
-    type ReturnType;
-    type Future: Future<Output = Option<Self::ReturnType>>;
+    type Future: Future<Output = Option<ReturnType>>;
 
     fn execute_query<Q>(&self, q: &Q) -> Self::Future
-        where Q: Query<QueryMarker=One, ReturnType=Self::ReturnType>;
+        where Q: Query<QueryMarker=One, ReturnType=ReturnType, Parameters=Parameters>;
 }
 
 pub trait Relation {
@@ -46,11 +44,19 @@ impl QueryMarker for Incomplete {}
 pub trait Query {
     type ReturnType;
     type QueryMarker: QueryMarker;
+    type Parameters;
+
+    fn parameters(&self) -> &Self::Parameters;
 }
 
 impl<Q> Query for &Q where Q: Query {
     type ReturnType = Q::ReturnType;
     type QueryMarker = Q::QueryMarker;
+    type Parameters = Q::Parameters;
+
+    fn parameters(&self) -> &Self::Parameters {
+        (*self).parameters()
+    }
 }
 
 pub trait Stores<R: Relation>: Repository {
