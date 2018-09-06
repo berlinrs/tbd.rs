@@ -1,7 +1,5 @@
 use futures::prelude::*;
 
-pub trait Finite {}
-
 pub trait Gateway {}
 
 pub trait Repository {
@@ -10,6 +8,7 @@ pub trait Repository {
     fn gateway(&self) -> &Self::Gateway;
 }
 
+//This must become `ExecuteAll<Relation>`
 pub trait ExecuteAll<ReturnType>: Gateway {
     type Error;
     type Stream: Stream<Item = ReturnType>;
