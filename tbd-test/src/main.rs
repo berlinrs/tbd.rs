@@ -30,7 +30,6 @@ struct MemoryGateway  {
 
 impl Gateway for MemoryGateway {}
 
-
 impl ExecuteAll<Post> for MemoryGateway {
     type Error = ();
     type Stream = stream::Iter<std::vec::IntoIter<Post>>;
@@ -60,7 +59,6 @@ impl ExecuteOne<Post, FindParameters<u64>> for MemoryGateway {
         future::ready(self.posts.iter().find(|p| p.id == q.parameters().id).cloned())
     }
 }
-
 
 struct BlogRepository {
     gateway: MemoryGateway
@@ -109,7 +107,6 @@ impl BelongsToRelationship for CommentPost {
     type Source = Comments;
     type To = Posts;
 }
-
 
 async fn read_from_repos() {
     let mut posts = vec![];

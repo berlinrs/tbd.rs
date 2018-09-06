@@ -12,6 +12,7 @@ use tbd_sqlite3::Sqlite3Gateway;
 use tbd_sqlite3::RelationName;
 use tbd_core::query::*;
 use tbd_core::types::*;
+use tbd_core::changeset::*;
 use tbd_core::mini_exec;
 
 #[derive(Debug, Clone)]
@@ -111,9 +112,14 @@ async fn read_from_repos() {
         ).unwrap();
     }
     
-
     let gateway = Sqlite3Gateway { connection: conn };
     let repos = BlogRepository { gateway: gateway };
+
+    let post = Post { id: 4, content: "Post number 4".into() };
+    let changeset = BlogRepository::change()
+                                  .insert::<Posts>(post);
+
+    changeset.commit(&repos);
 
     let query = select::<Post>().from::<Posts>();
 
