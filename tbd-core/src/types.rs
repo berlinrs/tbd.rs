@@ -59,23 +59,11 @@ impl<Q> Query for &Q where Q: Query {
     }
 }
 
-pub trait Stores<R: Relation>: Repository {
+pub trait Stores<R> : Repository {
 
-    // //TODO: Should become Future<Output = Result<Stream<Item = R::Model>, Self::Error>>
-    // type Stream: Stream<Item = R::Model>;
-    // //TODO: Should bcome Future<Output = Result<Option<R::Model>, Self::Error>>
-    // type Future: Future<Output = Option<R::Model>>;
-
-    // fn all(&self) -> Self::Stream;
-
-    // fn one(&self, id: R::PrimaryKey) -> Self::Future;
 }
 
-pub trait Contains<R> {}
-
-impl<T, R> Contains<R> for T where T: Stores<R>, R: Relation {}
-
-impl<A, B, T> Contains<(A, B)> for T where T: Contains<A> + Contains<B> {} 
+impl<A, B, T> Stores<(A, B)> for T where T: Stores<A> + Stores<B> {} 
 
 pub trait HasManyRelationShip {
     type Of: Relation;

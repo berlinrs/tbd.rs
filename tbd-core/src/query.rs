@@ -96,7 +96,7 @@ pub trait Execute<Repos, R, ReturnType>
     type FutureType;
 
     fn execute(&self, repos: &Repos) -> Self::FutureType
-        where Repos: Contains<R>;
+        where Repos: Stores<R>;
 }
 
 impl<Repos, R, ReturnType> Execute<Repos, R, ReturnType> for SelectFrom<R>
@@ -108,7 +108,7 @@ impl<Repos, R, ReturnType> Execute<Repos, R, ReturnType> for SelectFrom<R>
     type FutureType = <<Repos as Repository>::Gateway as ExecuteAll<ReturnType>>::Stream;
 
     default fn execute(&self, repos: &Repos) -> Self::FutureType
-        where Repos: Contains<R> {
+        where Repos: Stores<R> {
         types::ExecuteAll::execute_query(repos.gateway(), &self)
     }
 }
@@ -122,28 +122,7 @@ impl<Repos, R, ReturnType, PK> Execute<Repos, R, ReturnType> for Find<PK, Select
     type FutureType = <<Repos as Repository>::Gateway as ExecuteOne<ReturnType, Self::Parameters>>::Future;
 
     default fn execute(&self, repos: &Repos) -> Self::FutureType
-        where Repos: Contains<R> {
+        where Repos: Stores<R> {
         types::ExecuteOne::execute_query(repos.gateway(), &self)
     }
 }
-
-
-// impl<Repos, R> Execute<Repos, R> for SelectFrom<R>
-//     where R: Relation,
-//           Repos: Stores<R> + SqlRepos {
-
-//     default fn execute(&self, repos: &Repos) -> <Repos as Stores<R>>::Stream
-//         where Repos: Stores<R> {
-//         repos.all()
-//     }
-// }
-
-// impl<Repos, R> Execute<Repos, R> for SelectFrom<R>
-//     where R: Relation,
-//           Repos: Stores<R> + SqlRepos + PostGres {
-
-//     fn execute(&self, repos: &Repos) -> <Repos as Stores<R>>::Stream
-//         where Repos: Stores<R> {
-//         repos.all()
-//     }
-// }
