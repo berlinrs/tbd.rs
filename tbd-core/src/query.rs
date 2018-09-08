@@ -8,7 +8,6 @@ pub struct Limit<Q> {
     inner: Q,
 }
 
-
 pub struct FindParameters<PK> {
     pub id: PK
 }

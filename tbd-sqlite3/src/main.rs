@@ -63,7 +63,7 @@ impl Repository for BlogRepository {
 struct Posts;
 
 impl Relation for Posts {
-    type PrimaryKey = u64;
+    type PrimaryKey = i64;
     type Model = Post;
 
     fn hydrate(model: &Post) -> HashMap<String, String> {
@@ -92,7 +92,7 @@ impl Stores<Posts> for BlogRepository {
 struct Comments;
 
 impl Relation for Comments {
-    type PrimaryKey = u64;
+    type PrimaryKey = i64;
     type Model = Comment;
 
     fn hydrate(model: &Comment) -> HashMap<String, String> {
@@ -195,6 +195,10 @@ async fn read_from_repos() {
     });
 
     await!(e2);
+
+    let query3 = select::<Post>().from::<Posts>().find(1);
+
+    println!("{:?}", await!(query3.execute(&repos)));
 }
 
 fn main() {

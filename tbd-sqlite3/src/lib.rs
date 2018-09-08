@@ -2,8 +2,10 @@
 
 use rusqlite::Connection;
 use tbd_core::types::*;
+use tbd_core::query::*;
 use tbd_core::changeset::*;
 use futures::stream;
+use futures::future;
 
 pub struct Sqlite3Gateway {
     pub connection: Connection
@@ -64,6 +66,7 @@ impl<T> ExecuteAll<T> for Sqlite3Gateway
     fn execute_query<Q>(&self, q: &Q) -> Self::Stream
         where Q: Query<QueryMarker=All, ReturnType=T> {
 
+        // TODO SECURITY this is unsafe
         let mut stmt = self.connection
             .prepare(&format!("SELECT * FROM {}", T::relation_name()))
             .unwrap();
@@ -73,5 +76,35 @@ impl<T> ExecuteAll<T> for Sqlite3Gateway
         }).unwrap().map(Result::unwrap).collect();
 
         stream::iter(resultvec.into_iter())
+    }
+}
+
+
+impl<T> ExecuteOne<T, FindParameters<i64>> for Sqlite3Gateway
+    where T: RelationName,
+          T: for<'a> From<&'a rusqlite::Row<'a, 'a>> {
+    type Error = ();
+    type Future = futures::future::Ready<Option<T>>;
+
+    fn execute_query<Q>(&self, q: &Q) -> Self::Future
+        where Q: Query<QueryMarker=One, ReturnType=T, Parameters=FindParameters<i64>> {
+
+        // TODO SECURITY this is unsafe
+        let mut stmt = self.connection
+            .prepare(&format!("SELECT * FROM {} where id = {}", T::relation_name(), q.parameters().id))
+            .unwrap();
+
+        let mut resultvec: Vec<T> = stmt.query_map(&[], |row| {
+            T::from(row)
+        }).unwrap().map(Result::unwrap).collect();
+
+        // TODO turn panic into result
+        let res = if resultvec.len() > 0 {
+            Some(resultvec.remove(0))
+        } else {
+            None
+        };
+
+        future::ready(res)
     }
 }
