@@ -199,6 +199,10 @@ async fn read_from_repos() {
     let query3 = select::<Post>().from::<Posts>().find(1);
 
     println!("{:?}", await!(query3.execute(&repos)));
+
+    let query4 = select::<Post>().from::<Posts>().find(365);
+
+    println!("{:?}", await!(query4.execute(&repos)));
 }
 
 fn main() {
