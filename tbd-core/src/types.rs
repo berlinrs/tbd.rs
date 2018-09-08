@@ -1,6 +1,14 @@
 use futures::prelude::*;
+use std::collections::HashMap;
+use crate::changeset::TransactionImplementation;
+use crate::changeset::Transaction;
 
-pub trait Gateway {}
+pub trait Gateway {
+    type TransactionImplementation: TransactionImplementation;
+
+    fn start_transaction(&self) -> Transaction<Self::TransactionImplementation>;
+    fn execute_transaction(&self, transaction: Transaction<Self::TransactionImplementation>);
+}
 
 pub trait Repository {
     type Gateway: Gateway;
@@ -28,6 +36,15 @@ pub trait ExecuteOne<ReturnType, Parameters>: Gateway {
 pub trait Relation {
     type PrimaryKey;
     type Model;
+
+    // TODO change this signature, HashMap<String, String> is obviously
+    // not what we want
+    // TODO this method should be removed altogether, it's not a good mapping
+    // protocol
+    fn hydrate(model: &Self::Model) -> HashMap<String, String>;
+
+    // this should move to Stores
+    fn name() -> &'static str;
 }
 
 pub trait QueryMarker {}

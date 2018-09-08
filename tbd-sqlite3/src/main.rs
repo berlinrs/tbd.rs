@@ -2,6 +2,7 @@
 
 use std::future::FutureObj;
 use std::task::Spawn;
+use std::collections::HashMap;
 use futures::StreamExt;
 use futures::stream;
 use futures::future;
@@ -30,12 +31,21 @@ impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Post {
     }
 }
 
+impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Comment {
+    fn from(row: &rusqlite::Row) -> Comment {
+        Comment {
+            id: row.get(0),
+            content: row.get(1),
+            post_id: row.get(2)
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 struct Comment {
-    id: u64,
+    id: i64,
     content: String,
-    post_id: u64
+    post_id: i64
 }
 
 struct BlogRepository {
@@ -55,6 +65,17 @@ struct Posts;
 impl Relation for Posts {
     type PrimaryKey = u64;
     type Model = Post;
+
+    fn hydrate(model: &Post) -> HashMap<String, String> {
+        let mut h = HashMap::new();
+        h.insert("id".to_string(), model.id.to_string());
+        h.insert("content".to_string(), format!("{}{}{}", '"', model.content.to_string(), '"'));
+        h
+    }
+
+    fn name() -> &'static str {
+        "posts"
+    }
 }
 
 
@@ -73,6 +94,25 @@ struct Comments;
 impl Relation for Comments {
     type PrimaryKey = u64;
     type Model = Comment;
+
+    fn hydrate(model: &Comment) -> HashMap<String, String> {
+        let mut h = HashMap::new();
+        h.insert("id".to_string(), model.id.to_string());
+        h.insert("content".to_string(), format!("{}{}{}", '"', model.content.to_string(), '"'));
+        h.insert("post_id".to_string(), model.post_id.to_string());
+        h
+    }
+
+     fn name() -> &'static str {
+        "comments"
+    }
+}
+
+
+impl RelationName for Comment {
+    fn relation_name() -> &'static str {
+        "comments"
+    }
 }
 
 impl Stores<Comments> for BlogRepository {
@@ -104,20 +144,37 @@ async fn read_from_repos() {
         &[],
     ).unwrap();
 
+    conn.execute(
+        "CREATE TABLE comments (
+                  id              INTEGER PRIMARY KEY,
+                  content         TEXT NOT NULL,
+                  post_id         INTEGER)",
+        &[],
+    ).unwrap();
+
+    let mut changeset = BlogRepository::change().inserts::<Posts>();
+
     for id in 1..=3 {
-        conn.execute(
-            "INSERT INTO posts (id, content)
-                  VALUES (?1, ?2)",
-            &[&id, &format!("Post number {}", id)],
-        ).unwrap();
+        let post = Post { id: id, content: format!("Post number {}", id) };
+
+        changeset.push(post);
+    }
+
+    let mut changeset = changeset.inserts::<Comments>();
+
+    for id in 1..=9 {
+        let post_id = id % 3;
+        changeset.push(
+            Comment {
+                id: id,
+                content: format!("Comment number {} on post {}", id, post_id + 1),
+                post_id: post_id + 1
+            }
+        )
     }
     
     let gateway = Sqlite3Gateway { connection: conn };
     let repos = BlogRepository { gateway: gateway };
-
-    let post = Post { id: 4, content: "Post number 4".into() };
-    let changeset = BlogRepository::change()
-                                  .insert::<Posts>(post);
 
     changeset.commit(&repos);
 
@@ -129,6 +186,15 @@ async fn read_from_repos() {
     });
 
     await!(e1);
+
+    let query2 = select::<Comment>().from::<Comments>();
+
+    let e2 = query2.execute(&repos).for_each(|item| {
+        println!("{:?}", item);
+        future::ready(())
+    });
+
+    await!(e2);
 }
 
 fn main() {

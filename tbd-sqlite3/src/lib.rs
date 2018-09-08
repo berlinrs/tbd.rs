@@ -2,14 +2,53 @@
 
 use rusqlite::Connection;
 use tbd_core::types::*;
+use tbd_core::changeset::*;
 use futures::stream;
 
 pub struct Sqlite3Gateway {
     pub connection: Connection
 }
 
-impl Gateway for Sqlite3Gateway {
+#[derive(Default, Debug)]
+pub struct Sqlite3Transaction {
+    statements: Vec<String>
+}
 
+impl TransactionImplementation for Sqlite3Transaction {
+    fn insert<R>(&mut self, m: &R::Model) where R: Relation {
+        let hydrated = R::hydrate(m);
+
+        let (keys, values): (Vec<&str>, Vec<&str>) = 
+            hydrated.iter()
+                    .map(|(k,v)| (k.as_str(), v.as_str()))
+                    .unzip();
+
+        let field_list: String = keys.join(", ");
+        let values_list: String = values.join(", ");
+
+        self.statements.push(format!("INSERT INTO {} ({})
+                       VALUES ({})", R::name(), field_list, values_list));
+    }
+
+}
+
+impl Gateway for Sqlite3Gateway {
+    type TransactionImplementation = Sqlite3Transaction;
+
+    fn start_transaction(&self) -> Transaction<Self::TransactionImplementation> {
+        Transaction { transaction: Sqlite3Transaction::default() }
+    }
+
+    fn execute_transaction(&self, transaction: Transaction<Self::TransactionImplementation>) {
+        println!("{:?}", transaction.transaction);
+        for stmt in transaction.transaction.statements {
+            println!("{}", stmt);
+            self.connection.execute(
+                &stmt,
+                &[],
+            ).unwrap();
+        }
+    }
 }
 
 pub trait RelationName {
