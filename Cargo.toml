@@ -1,2 +1,2 @@
 [workspace]
-members = ["tbd-core", "tbd-sqlite3", "tbd-test"]
+members = ["tbd-core", "tbd-sqlite3", "tbd-memory"]
