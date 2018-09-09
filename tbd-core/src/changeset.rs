@@ -1,4 +1,5 @@
 use crate::types::*;
+use std::cell::RefCell;
 
 pub trait Changes 
     where Self: Repository + Sized {
@@ -6,7 +7,7 @@ pub trait Changes
 }
 
 pub trait TransactionImplementation where Self: Sized {
-    fn insert<R>(&mut self, m: &R::Model) where R: Relation;
+    fn insert<R>(&mut self, m: &mut R::Model) where R: Relation;
 }
 
 pub struct Transaction<T> 
@@ -42,12 +43,12 @@ impl<R,G> Changes for R
 }
 
 pub struct Insert<R: Relation> {
-    insert: R::Model
+    insert: RefCell<R::Model>
 }
 
 impl<R> Operation for Insert<R> where R: Relation {
     fn apply_on_transaction<T>(&self, t: &mut T) where T: TransactionImplementation {
-        t.insert::<R>(&self.insert);
+        t.insert::<R>(&mut self.insert.borrow_mut());
     }
 }
 
@@ -59,7 +60,7 @@ impl<R> Changeable<R> for Changeset<R> where R: Repository {
     fn insert<Rel>(self, m: Rel::Model) -> Change<Self, R, Insert<Rel>>
         where R: Stores<Rel>,
               Rel: Relation {
-        Change { after: self, operation: Insert { insert: m }, marker: std::marker::PhantomData }
+        Change { after: self, operation: Insert { insert: RefCell::new(m) }, marker: std::marker::PhantomData }
     }
 
     fn inserts<Rel>(self) -> ChangeList<Self, R, Insert<Rel>, Rel>
@@ -96,7 +97,7 @@ impl<C, R, O> Changeable<R> for Change<C, R, O>
     fn insert<Rel>(self, m: Rel::Model) -> Change<Self, R, Insert<Rel>>
         where R: Stores<Rel>,
               Rel: Relation {
-        Change { after: self, operation: Insert { insert: m }, marker: std::marker::PhantomData }
+        Change { after: self, operation: Insert { insert: RefCell::new(m) }, marker: std::marker::PhantomData }
     }
 
     fn inserts<Rel>(self) -> ChangeList<Self, R, Insert<Rel>, Rel>
@@ -134,7 +135,7 @@ impl<C, R, Rel> ChangeList<C, R, Insert<Rel>, Rel> where C: Changeable<R>,
                                         Rel: Relation {
     
     pub fn push(&mut self, m: Rel::Model) {
-        self.operations.push(Insert { insert: m });
+        self.operations.push(Insert { insert: RefCell::new(m) });
     }
 }
 
@@ -147,7 +148,7 @@ impl<C, R, O, Rel> Changeable<R> for ChangeList<C, R, O, Rel>
     fn insert<OtherRel>(self, m: OtherRel::Model) -> Change<Self, R, Insert<OtherRel>>
         where R: Stores<OtherRel>,
               OtherRel: Relation {
-        Change { after: self, operation: Insert { insert: m }, marker: std::marker::PhantomData }
+        Change { after: self, operation: Insert { insert: RefCell::new(m) }, marker: std::marker::PhantomData }
     }
 
     fn inserts<OtherRel>(self) -> ChangeList<Self, R, Insert<OtherRel>, OtherRel>
