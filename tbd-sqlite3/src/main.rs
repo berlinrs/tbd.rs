@@ -19,10 +19,10 @@ use tbd_core::changeset::*;
 use tbd_core::model_wrappers::*;
 use tbd_core::mini_exec;
 
+use tbd_keyed::Keyed;
 
 #[derive(Debug, Clone)]
 struct Post {
-    id: Option<i64>,
     content: String
 }
 
@@ -30,25 +30,14 @@ impl ModelLifeCycle for Post {
     type PrimaryKey = i64;
 
     fn created(&mut self, pk: i64) {
-        self.id = Some(pk);
+
     }
 }
 
 impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Post {
     fn from(row: &rusqlite::Row) -> Post {
         Post {
-            id: row.get(0),
             content: row.get(1)
-        }
-    }
-}
-
-impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Comment {
-    fn from(row: &rusqlite::Row) -> Comment {
-        Comment {
-            id: row.get(0),
-            content: row.get(1),
-            post_id: row.get(2)
         }
     }
 }
@@ -64,7 +53,6 @@ impl Wrapper for Post {
 
 #[derive(Debug, Clone)]
 struct Comment {
-    id: Option<i64>,
     content: String,
     post_id: i64
 }
@@ -73,7 +61,16 @@ impl ModelLifeCycle for Comment {
     type PrimaryKey = i64;
 
     fn created(&mut self, pk: i64) {
-        self.id = Some(pk);
+
+    }
+}
+
+impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Comment {
+    fn from(row: &rusqlite::Row) -> Comment {
+        Comment {
+            content: row.get(1),
+            post_id: row.get(2)
+        }
     }
 }
 
@@ -103,11 +100,11 @@ struct Posts;
 impl Relation for Posts {
     type PrimaryKey = i64;
     type Model = Post;
-    type Wrapper = Post;
+    type Wrapper = Keyed<Self::PrimaryKey, Post>;
 
-    fn hydrate(model: &Post) -> HashMap<String, String> {
+    fn hydrate(model: &Keyed<Self::PrimaryKey, Post>) -> HashMap<String, String> {
         let mut h = HashMap::new();
-        if let Some(id) = model.id {
+        if let Some(id) = model.pk {
             h.insert("id".to_string(), id.to_string());
         }
         h.insert("content".to_string(), format!("{}{}{}", '"', model.content.to_string(), '"'));
@@ -135,11 +132,11 @@ struct Comments;
 impl Relation for Comments {
     type PrimaryKey = i64;
     type Model = Comment;
-    type Wrapper = Comment;
+    type Wrapper = Keyed<Self::PrimaryKey, Comment>;
 
-    fn hydrate(model: &Comment) -> HashMap<String, String> {
+    fn hydrate(model: &Keyed<Self::PrimaryKey, Comment>) -> HashMap<String, String> {
         let mut h = HashMap::new();
-        if let Some(id) = model.id {
+        if let Some(id) = model.pk {
             h.insert("id".to_string(), id.to_string());
         }
         h.insert("content".to_string(), format!("{}{}{}", '"', model.content.to_string(), '"'));
@@ -199,9 +196,9 @@ async fn read_from_repos() {
     let mut changeset = BlogRepository::change().inserts::<Posts>();
 
     for id in 1..=3 {
-        let post = Post { id: None, content: format!("Post number {}", id) };
+        let post = Post { content: format!("Post number {}", id) };
 
-        changeset.push(post);
+        changeset.push(Keyed::new(post));
     }
 
     let mut changeset = changeset.inserts::<Comments>();
@@ -209,11 +206,12 @@ async fn read_from_repos() {
     for id in 1..=9 {
         let post_id = id % 3;
         changeset.push(
-            Comment {
-                id: None,
-                content: format!("Comment number {} on post {}", id, post_id + 1),
-                post_id: post_id + 1
-            }
+            Keyed::new(
+                Comment {
+                    content: format!("Comment number {} on post {}", id, post_id + 1),
+                    post_id: post_id + 1
+                }
+            )
         )
     }
     

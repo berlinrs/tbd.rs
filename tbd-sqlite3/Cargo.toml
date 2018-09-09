@@ -8,5 +8,6 @@ edition = "2018"
 
 [dependencies]
 tbd-core = { path = "../tbd-core" }
+tbd-keyed = { path = "../tbd-keyed" }
 rusqlite = "0.14.0"
 futures-preview = "0.3.0-alpha.5"
