@@ -5,7 +5,7 @@ pub trait Changes
     fn change() -> Changeset<Self>;
 }
 
-pub trait TransactionImplementation {
+pub trait TransactionImplementation where Self: Sized {
     fn insert<R>(&mut self, m: &R::Model) where R: Relation;
 }
 
@@ -115,7 +115,7 @@ impl<C, R, O> Changeable<R> for Change<C, R, O>
     #[inline]
     fn commit(&self, repos: &R) {
         let transaction = self.build_transaction(repos);
-        repos.gateway().execute_transaction(transaction);
+        repos.gateway().finish_transaction(transaction);
     }
 }
 
@@ -160,7 +160,7 @@ impl<C, R, O, Rel> Changeable<R> for ChangeList<C, R, O, Rel>
     fn build_transaction(&self, repos: &R) -> Transaction<<R::Gateway as Gateway>::TransactionImplementation>{
         let mut transaction = self.after.build_transaction(repos);
         for op in self.operations.iter() {
-            op.apply_on_transaction(&mut transaction.transaction);
+            op.apply_on_transaction::<<R::Gateway as Gateway>::TransactionImplementation>(&mut transaction.transaction);
         }
         transaction
     }
@@ -168,6 +168,6 @@ impl<C, R, O, Rel> Changeable<R> for ChangeList<C, R, O, Rel>
     #[inline]
     fn commit(&self, repos: &R) {
         let transaction = self.build_transaction(repos);
-        repos.gateway().execute_transaction(transaction);
+        repos.gateway().finish_transaction(transaction);
     }
 }

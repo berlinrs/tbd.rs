@@ -3,6 +3,8 @@
 use std::future::FutureObj;
 use std::task::Spawn;
 use std::collections::HashMap;
+use std::cell::RefCell;
+
 use futures::StreamExt;
 use futures::stream;
 use futures::future;
@@ -14,7 +16,9 @@ use tbd_sqlite3::RelationName;
 use tbd_core::query::*;
 use tbd_core::types::*;
 use tbd_core::changeset::*;
+use tbd_core::model_wrappers::*;
 use tbd_core::mini_exec;
+
 
 #[derive(Debug, Clone)]
 struct Post {
@@ -41,11 +45,29 @@ impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Comment {
     }
 }
 
+impl Wrapper for Post {
+    type Wrapping = Post;
+    type Returning = Post;
+
+    fn wrap(m: Post) -> Post {
+        m
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Comment {
     id: i64,
     content: String,
     post_id: i64
+}
+
+impl Wrapper for Comment {
+    type Wrapping = Comment;
+    type Returning = Comment;
+
+    fn wrap(m: Comment) -> Comment {
+        m
+    }
 }
 
 struct BlogRepository {
@@ -65,6 +87,7 @@ struct Posts;
 impl Relation for Posts {
     type PrimaryKey = i64;
     type Model = Post;
+    type Wrapper = Post;
 
     fn hydrate(model: &Post) -> HashMap<String, String> {
         let mut h = HashMap::new();
@@ -94,6 +117,7 @@ struct Comments;
 impl Relation for Comments {
     type PrimaryKey = i64;
     type Model = Comment;
+    type Wrapper = Comment;
 
     fn hydrate(model: &Comment) -> HashMap<String, String> {
         let mut h = HashMap::new();
@@ -173,7 +197,7 @@ async fn read_from_repos() {
         )
     }
     
-    let gateway = Sqlite3Gateway { connection: conn };
+    let gateway = Sqlite3Gateway { connection: RefCell::new(Some(conn)) };
     let repos = BlogRepository { gateway: gateway };
 
     changeset.commit(&repos);

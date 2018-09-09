@@ -6,14 +6,16 @@ use tbd_core::query::*;
 use tbd_core::changeset::*;
 use futures::stream;
 use futures::future;
+use std::cell::RefCell;
+
+type Statement = String;
 
 pub struct Sqlite3Gateway {
-    pub connection: Connection
+    pub connection: RefCell<Option<Connection>>
 }
 
-#[derive(Default, Debug)]
 pub struct Sqlite3Transaction {
-    statements: Vec<String>
+    connection: Connection
 }
 
 impl TransactionImplementation for Sqlite3Transaction {
@@ -28,28 +30,28 @@ impl TransactionImplementation for Sqlite3Transaction {
         let field_list: String = keys.join(", ");
         let values_list: String = values.join(", ");
 
-        self.statements.push(format!("INSERT INTO {} ({})
-                       VALUES ({})", R::name(), field_list, values_list));
-    }
+        let stmt = format!("INSERT INTO {} ({})
+                       VALUES ({})", R::name(), field_list, values_list);
+        
+        self.connection.execute(
+            &stmt,
+            &[],
+        ).unwrap();
 
+        let insert_row_id = self.connection.last_insert_rowid();
+        println!("inserted {}", insert_row_id);
+    }
 }
 
 impl Gateway for Sqlite3Gateway {
     type TransactionImplementation = Sqlite3Transaction;
 
     fn start_transaction(&self) -> Transaction<Self::TransactionImplementation> {
-        Transaction { transaction: Sqlite3Transaction::default() }
+        Transaction { transaction: Sqlite3Transaction { connection: self.connection.borrow_mut().take().unwrap() } }
     }
 
-    fn execute_transaction(&self, transaction: Transaction<Self::TransactionImplementation>) {
-        println!("{:?}", transaction.transaction);
-        for stmt in transaction.transaction.statements {
-            println!("{}", stmt);
-            self.connection.execute(
-                &stmt,
-                &[],
-            ).unwrap();
-        }
+    fn finish_transaction(&self, transaction: Transaction<Self::TransactionImplementation>) {
+        *self.connection.borrow_mut() = Some(transaction.transaction.connection)
     }
 }
 
@@ -66,8 +68,10 @@ impl<T> ExecuteAll<T> for Sqlite3Gateway
     fn execute_query<Q>(&self, q: &Q) -> Self::Stream
         where Q: Query<QueryMarker=All, ReturnType=T> {
 
+        let borrow = self.connection.borrow();
+
         // TODO SECURITY this is unsafe
-        let mut stmt = self.connection
+        let mut stmt = (*borrow).as_ref().unwrap()
             .prepare(&format!("SELECT * FROM {}", T::relation_name()))
             .unwrap();
 
@@ -89,8 +93,9 @@ impl<T> ExecuteOne<T, FindParameters<i64>> for Sqlite3Gateway
     fn execute_query<Q>(&self, q: &Q) -> Self::Future
         where Q: Query<QueryMarker=One, ReturnType=T, Parameters=FindParameters<i64>> {
 
+        let borrow = self.connection.borrow();
         // TODO SECURITY this is unsafe
-        let mut stmt = self.connection
+        let mut stmt = (*borrow).as_ref().unwrap()
             .prepare(&format!("SELECT * FROM {} where id = {}", T::relation_name(), q.parameters().id))
             .unwrap();
 
@@ -98,7 +103,6 @@ impl<T> ExecuteOne<T, FindParameters<i64>> for Sqlite3Gateway
             T::from(row)
         }).unwrap().map(Result::unwrap).collect();
 
-        // TODO turn panic into result
         let res = if resultvec.len() > 0 {
             Some(resultvec.remove(0))
         } else {

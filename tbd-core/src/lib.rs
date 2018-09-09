@@ -4,3 +4,4 @@ pub mod mini_exec;
 pub mod types;
 pub mod query;
 pub mod changeset;
+pub mod model_wrappers;

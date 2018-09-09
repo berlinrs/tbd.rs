@@ -2,12 +2,13 @@ use futures::prelude::*;
 use std::collections::HashMap;
 use crate::changeset::TransactionImplementation;
 use crate::changeset::Transaction;
+use crate::model_wrappers::Wrapper;
 
 pub trait Gateway {
     type TransactionImplementation: TransactionImplementation;
 
     fn start_transaction(&self) -> Transaction<Self::TransactionImplementation>;
-    fn execute_transaction(&self, transaction: Transaction<Self::TransactionImplementation>);
+    fn finish_transaction(&self, transaction: Transaction<Self::TransactionImplementation>);
 }
 
 pub trait Repository {
@@ -16,7 +17,9 @@ pub trait Repository {
     fn gateway(&self) -> &Self::Gateway;
 }
 
-//This must become `ExecuteAll<Relation>`
+//This must become `ExecuteAll<Relation>`, because we
+//probably need the relation name
+//Alternatively, funnel the relation name through the query
 pub trait ExecuteAll<ReturnType>: Gateway {
     type Error;
     type Stream: Stream<Item = ReturnType>;
@@ -25,6 +28,9 @@ pub trait ExecuteAll<ReturnType>: Gateway {
         where Q: Query<QueryMarker=All, ReturnType=ReturnType>;
 }
 
+//This must become `ExecuteOne<Relation>`, because we
+//probably need the relation name
+//Alternatively, funnel the relation name through the query
 pub trait ExecuteOne<ReturnType, Parameters>: Gateway {
     type Error;
     type Future: Future<Output = Option<ReturnType>>;
@@ -36,6 +42,7 @@ pub trait ExecuteOne<ReturnType, Parameters>: Gateway {
 pub trait Relation {
     type PrimaryKey;
     type Model;
+    type Wrapper: Wrapper<Wrapping=Self::Model>;
 
     // TODO change this signature, HashMap<String, String> is obviously
     // not what we want
