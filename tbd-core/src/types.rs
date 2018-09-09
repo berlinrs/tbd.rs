@@ -42,16 +42,22 @@ pub trait ExecuteOne<ReturnType, Parameters>: Gateway {
 pub trait Relation {
     type PrimaryKey;
     type Model;
-    type Wrapper: Wrapper<Wrapping=Self::Model>;
+    type Wrapper: Wrapper<Wrapping=Self::Model> + ModelLifeCycle<PrimaryKey=Self::PrimaryKey>;
 
     // TODO change this signature, HashMap<String, String> is obviously
     // not what we want
     // TODO this method should be removed altogether, it's not a good mapping
     // protocol
-    fn hydrate(model: &Self::Model) -> HashMap<String, String>;
+    fn hydrate(model: &Self::Wrapper) -> HashMap<String, String>;
 
     // this should move to Stores
     fn name() -> &'static str;
+}
+
+pub trait ModelLifeCycle : Wrapper {
+    type PrimaryKey;
+
+    fn created(&mut self, pk: Self::PrimaryKey);
 }
 
 pub trait QueryMarker {}

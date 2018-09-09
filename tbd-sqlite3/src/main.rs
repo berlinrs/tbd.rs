@@ -22,8 +22,16 @@ use tbd_core::mini_exec;
 
 #[derive(Debug, Clone)]
 struct Post {
-    id: i64,
+    id: Option<i64>,
     content: String
+}
+
+impl ModelLifeCycle for Post {
+    type PrimaryKey = i64;
+
+    fn created(&mut self, pk: i64) {
+        self.id = Some(pk);
+    }
 }
 
 impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Post {
@@ -56,9 +64,17 @@ impl Wrapper for Post {
 
 #[derive(Debug, Clone)]
 struct Comment {
-    id: i64,
+    id: Option<i64>,
     content: String,
     post_id: i64
+}
+
+impl ModelLifeCycle for Comment {
+    type PrimaryKey = i64;
+
+    fn created(&mut self, pk: i64) {
+        self.id = Some(pk);
+    }
 }
 
 impl Wrapper for Comment {
@@ -91,7 +107,9 @@ impl Relation for Posts {
 
     fn hydrate(model: &Post) -> HashMap<String, String> {
         let mut h = HashMap::new();
-        h.insert("id".to_string(), model.id.to_string());
+        if let Some(id) = model.id {
+            h.insert("id".to_string(), id.to_string());
+        }
         h.insert("content".to_string(), format!("{}{}{}", '"', model.content.to_string(), '"'));
         h
     }
@@ -121,7 +139,9 @@ impl Relation for Comments {
 
     fn hydrate(model: &Comment) -> HashMap<String, String> {
         let mut h = HashMap::new();
-        h.insert("id".to_string(), model.id.to_string());
+        if let Some(id) = model.id {
+            h.insert("id".to_string(), id.to_string());
+        }
         h.insert("content".to_string(), format!("{}{}{}", '"', model.content.to_string(), '"'));
         h.insert("post_id".to_string(), model.post_id.to_string());
         h
@@ -179,7 +199,7 @@ async fn read_from_repos() {
     let mut changeset = BlogRepository::change().inserts::<Posts>();
 
     for id in 1..=3 {
-        let post = Post { id: id, content: format!("Post number {}", id) };
+        let post = Post { id: None, content: format!("Post number {}", id) };
 
         changeset.push(post);
     }
@@ -190,7 +210,7 @@ async fn read_from_repos() {
         let post_id = id % 3;
         changeset.push(
             Comment {
-                id: id,
+                id: None,
                 content: format!("Comment number {} on post {}", id, post_id + 1),
                 post_id: post_id + 1
             }

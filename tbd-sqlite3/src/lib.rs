@@ -19,7 +19,7 @@ pub struct Sqlite3Transaction {
 }
 
 impl TransactionImplementation for Sqlite3Transaction {
-    fn insert<R>(&mut self, m: &mut R::Model) where R: Relation {
+    fn insert<R>(&mut self, m: &mut R::Wrapper) where R: Relation {
         let hydrated = R::hydrate(m);
 
         let (keys, values): (Vec<&str>, Vec<&str>) = 
