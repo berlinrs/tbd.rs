@@ -7,4 +7,4 @@ authors = ["Florian Gilcher <florian.gilcher@asquera.de>"]
 edition = "2018"
 
 [dependencies]
-futures-preview = "0.3.0-alpha.5"
+futures-preview = "0.3.0-alpha.6"

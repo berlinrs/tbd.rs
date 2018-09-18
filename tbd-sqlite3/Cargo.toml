@@ -10,4 +10,4 @@ edition = "2018"
 tbd-core = { path = "../tbd-core" }
 tbd-keyed = { path = "../tbd-keyed" }
 rusqlite = "0.14.0"
-futures-preview = "0.3.0-alpha.5"
+futures-preview = "0.3.0-alpha.6"
