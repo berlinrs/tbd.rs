@@ -4,13 +4,9 @@ extern crate tbd_core;
 
 use tbd_core::model_wrappers::Wrapper;
 use tbd_core::types::ModelLifeCycle;
+use tbd_core::types::Key;
 
 use std::ops::{Deref, DerefMut};
-
-pub trait Key: Clone {}
-
-impl Key for u64 {}
-impl Key for i64 {}
 
 pub struct Keyed<PK: Key, W: Wrapper> where PK: Key,
                                             W: Wrapper + ModelLifeCycle {
@@ -22,6 +18,10 @@ impl<PK, W> Keyed<PK, W> where PK: Key,
                                W: Wrapper<Returning=W> + ModelLifeCycle {
     pub fn new(w: W) -> Keyed<PK, W> {
         Keyed { pk: None, m: w }
+    }
+
+    pub fn with_key(pk: PK, w: W) -> Keyed<PK, W> {
+        Keyed { pk: Some(pk), m: w }
     }
 } 
 
@@ -56,8 +56,9 @@ impl<PK, W> ModelLifeCycle for Keyed<PK, W> where PK: Key,
                                                   W: Wrapper<Returning=W> + ModelLifeCycle<PrimaryKey=PK> {
     type PrimaryKey = PK;
 
-    fn created(&mut self, pk: PK) {
-        self.pk = Some(pk.clone());
-        self.m.created(pk);
+    fn created(&mut self, raw_pk: &[u8]) {
+        self.pk = Some(PK::from_bytes(raw_pk));
+
+        self.m.created(raw_pk);
     }
 }

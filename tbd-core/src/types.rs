@@ -1,8 +1,21 @@
 use futures::prelude::*;
 use std::collections::HashMap;
+use byteorder::{LittleEndian, ReadBytesExt};
 use crate::changeset::TransactionImplementation;
 use crate::changeset::Transaction;
 use crate::model_wrappers::Wrapper;
+
+pub trait Key {
+    fn from_bytes(bytes: &[u8]) -> Self;
+}
+
+impl Key for i64 {
+    fn from_bytes(bytes: &[u8]) -> i64 {
+        use std::io::Cursor;
+        let mut rdr = Cursor::new(bytes);
+        rdr.read_i64::<LittleEndian>().unwrap()
+    }
+}
 
 pub trait Gateway {
     type TransactionImplementation: TransactionImplementation;
@@ -40,7 +53,7 @@ pub trait ExecuteOne<ReturnType, Parameters>: Gateway {
 }
 
 pub trait Relation {
-    type PrimaryKey;
+    type PrimaryKey: Key;
     type Model;
     type Wrapper: Wrapper<Wrapping=Self::Model> + ModelLifeCycle<PrimaryKey=Self::PrimaryKey>;
 
@@ -55,9 +68,9 @@ pub trait Relation {
 }
 
 pub trait ModelLifeCycle : Wrapper {
-    type PrimaryKey;
+    type PrimaryKey: Key;
 
-    fn created(&mut self, pk: Self::PrimaryKey);
+    fn created(&mut self, primary_key: &[u8]);
 }
 
 pub trait QueryMarker {}

@@ -29,7 +29,7 @@ struct Post {
 impl ModelLifeCycle for Post {
     type PrimaryKey = i64;
 
-    fn created(&mut self, pk: i64) {
+    fn created(&mut self, pk: &[u8]) {
 
     }
 }
@@ -42,6 +42,25 @@ impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Post {
     }
 }
 
+struct KeyedPost(Keyed<i64, Post>);
+
+impl<'a> From<&'a rusqlite::Row<'a, 'a>> for KeyedPost {
+    fn from(row: &rusqlite::Row) -> KeyedPost {
+        KeyedPost(Keyed::with_key(
+            row.get(0),
+            row.into()
+        ))
+    }
+}
+
+impl ModelLifeCycle for KeyedPost {
+    type PrimaryKey = i64;
+
+    fn created(&mut self, pk: &[u8]) {
+        self.0.created(pk)
+    }
+}
+
 impl Wrapper for Post {
     type Wrapping = Post;
     type Returning = Post;
@@ -50,6 +69,18 @@ impl Wrapper for Post {
         m
     }
 }
+
+impl Wrapper for KeyedPost {
+    type Wrapping = Post;
+    type Returning = KeyedPost;
+
+    fn wrap(m: Post) -> KeyedPost {
+        KeyedPost(
+            Keyed::new(m)
+        )
+    }
+}
+
 
 #[derive(Debug, Clone)]
 struct Comment {
@@ -60,7 +91,7 @@ struct Comment {
 impl ModelLifeCycle for Comment {
     type PrimaryKey = i64;
 
-    fn created(&mut self, pk: i64) {
+    fn created(&mut self, pk: &[u8]) {
 
     }
 }
@@ -74,6 +105,26 @@ impl<'a> From<&'a rusqlite::Row<'a, 'a>> for Comment {
     }
 }
 
+struct KeyedComment(Keyed<i64, Comment>);
+
+impl<'a> From<&'a rusqlite::Row<'a, 'a>> for KeyedComment {
+    fn from(row: &rusqlite::Row) -> KeyedComment {
+        KeyedComment(Keyed::with_key(
+            row.get(0),
+            row.into()
+        ))
+    }
+}
+
+
+impl ModelLifeCycle for KeyedComment {
+    type PrimaryKey = i64;
+
+    fn created(&mut self, pk: &[u8]) {
+        self.0.created(pk)
+    }
+}
+
 impl Wrapper for Comment {
     type Wrapping = Comment;
     type Returning = Comment;
@@ -82,6 +133,18 @@ impl Wrapper for Comment {
         m
     }
 }
+
+impl Wrapper for KeyedComment {
+    type Wrapping = Comment;
+    type Returning = KeyedComment;
+
+    fn wrap(m: Comment) -> KeyedComment {
+        KeyedComment(
+            Keyed::new(m)
+        )
+    }
+}
+
 
 struct BlogRepository {
     gateway: Sqlite3Gateway
@@ -100,9 +163,10 @@ struct Posts;
 impl Relation for Posts {
     type PrimaryKey = i64;
     type Model = Post;
-    type Wrapper = Keyed<Self::PrimaryKey, Post>;
+    type Wrapper = KeyedPost;
 
-    fn hydrate(model: &Keyed<Self::PrimaryKey, Post>) -> HashMap<String, String> {
+    fn hydrate(model: &KeyedPost) -> HashMap<String, String> {
+        let model = &model.0;
         let mut h = HashMap::new();
         if let Some(id) = model.pk {
             h.insert("id".to_string(), id.to_string());
@@ -198,7 +262,7 @@ async fn read_from_repos() {
     for id in 1..=3 {
         let post = Post { content: format!("Post number {}", id) };
 
-        changeset.push(Keyed::new(post));
+        changeset.push(KeyedPost(Keyed::new(post)));
     }
 
     let mut changeset = changeset.inserts::<Comments>();

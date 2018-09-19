@@ -8,6 +8,8 @@ use futures::stream;
 use futures::future;
 use std::cell::RefCell;
 
+use byteorder::{WriteBytesExt,LittleEndian};
+
 type Statement = String;
 
 pub struct Sqlite3Gateway {
@@ -40,6 +42,10 @@ impl TransactionImplementation for Sqlite3Transaction {
 
         let insert_row_id = self.connection.last_insert_rowid();
         println!("inserted {}", insert_row_id);
+
+        let mut wtr = vec![];
+        wtr.write_i64::<LittleEndian>(insert_row_id);
+        m.created(&wtr);
     }
 }
 
