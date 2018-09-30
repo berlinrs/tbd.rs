@@ -192,3 +192,7 @@ As you can see , `tbd.rs` often uses concrete types with traits implemented on t
 Zero-Sized types introduce names and labels into the type system, `tbd.rs` uses them effectively to express relationships between those and uses them at compile time to generate queries.
 
 This also allows for effective code generation later.
+
+## Known issues
+
+`tbd-memory` currently doesn't build. Feel free to fix it!
