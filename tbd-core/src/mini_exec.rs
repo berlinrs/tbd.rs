@@ -1,18 +1,18 @@
-use std::future::{Future, FutureObj};
-use std::pin::PinMut;
+use std::future::Future;
+use std::pin::Pin;
 
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{sync_channel, SyncSender, SendError, Receiver};
 use std::task::{
     self,
-    Spawn,
     local_waker_from_nonlocal,
     Poll,
-    SpawnErrorKind,
-    SpawnObjError,
     Wake,
 };
 use std::time::Duration;
+
+use futures::future::FutureObj;
+use futures::task::{Spawn, SpawnError};
 
 static TIMEOUT: Duration = Duration::from_millis(100);
 
@@ -23,18 +23,15 @@ pub struct Executor {
 
 impl<'a> Spawn for &'a Executor {
     fn spawn_obj(&mut self, future: FutureObj<'static, ()>)
-        -> Result<(), SpawnObjError>
+        -> Result<(), SpawnError>
     {
         let task = Arc::new(Task {
             future: Mutex::new(Some(future)),
             task_sender: self.task_sender.clone(),
         });
 
-        self.task_sender.send(task).map_err(|SendError(task)| {
-            SpawnObjError {
-                kind: SpawnErrorKind::shutdown(),
-                future: task.future.lock().unwrap().take().unwrap(),
-            }
+        self.task_sender.send(task).map_err(|SendError(_)| {
+            SpawnError::shutdown()
         })
     }
 }
@@ -67,8 +64,7 @@ impl Executor {
                 // and just mention that there's a simple function to avoid
                 // the clone if anyone asks?
                 let waker = local_waker_from_nonlocal(task.clone());
-                let cx = &mut task::Context::new(&waker, &mut executor);
-                if let Poll::Pending = PinMut::new(&mut future).poll(cx) {
+                if let Poll::Pending = Pin::new(&mut future).poll(&waker) {
                     *future_slot = Some(future);
                 }
             }

@@ -1,13 +1,13 @@
 #![feature(async_await, await_macro, futures_api, pin, arbitrary_self_types, specialization)]
 
-use std::future::FutureObj;
-use std::task::Spawn;
 use std::collections::HashMap;
 use std::cell::RefCell;
 
 use futures::StreamExt;
 use futures::stream;
 use futures::future;
+use futures::future::FutureObj;
+use futures::task::Spawn;
 
 use rusqlite::Connection;
 
