@@ -17,7 +17,6 @@ use tbd_core::query::*;
 use tbd_core::types::*;
 use tbd_core::changeset::*;
 use tbd_core::model_wrappers::*;
-use tbd_core::mini_exec;
 
 use tbd_keyed::Keyed;
 

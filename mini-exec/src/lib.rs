@@ -1,10 +1,11 @@
+#![feature(futures_api, pin, arbitrary_self_types)]
+
 use std::future::Future;
 use std::pin::Pin;
 
 use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{sync_channel, SyncSender, SendError, Receiver};
 use std::task::{
-    self,
     local_waker_from_nonlocal,
     Poll,
     Wake,
@@ -55,7 +56,6 @@ impl Executor {
     }
 
     pub fn run(&self) {
-        let mut executor = &*self;
         while let Ok(task) = self.task_receiver.recv_timeout(TIMEOUT) {
             let mut future_slot = task.future.lock().unwrap();
             if let Some(mut future) = future_slot.take() {

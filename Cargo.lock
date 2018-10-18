@@ -133,6 +133,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "mini-exec"
+version = "0.1.0"
+dependencies = [
+ "futures-preview 0.3.0-alpha.7 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "num_cpus"
 version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -200,6 +207,7 @@ version = "0.1.0"
 dependencies = [
  "byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-preview 0.3.0-alpha.7 (registry+https://github.com/rust-lang/crates.io-index)",
+ "mini-exec 0.1.0",
  "rusqlite 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tbd-core 0.1.0",
  "tbd-keyed 0.1.0",
