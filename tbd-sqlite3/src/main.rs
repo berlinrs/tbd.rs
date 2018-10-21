@@ -1,10 +1,9 @@
-#![feature(async_await, await_macro, futures_api, pin, arbitrary_self_types)]
+#![feature(async_await, await_macro, futures_api)]
 
 use std::collections::HashMap;
 use std::cell::RefCell;
 
 use futures::StreamExt;
-use futures::stream;
 use futures::future;
 use futures::future::FutureObj;
 use futures::task::Spawn;
@@ -14,9 +13,12 @@ use rusqlite::Connection;
 use tbd_sqlite3::Sqlite3Gateway;
 use tbd_sqlite3::RelationName;
 use tbd_core::query::*;
-use tbd_core::types::*;
 use tbd_core::changeset::*;
 use tbd_core::model_wrappers::*;
+use tbd_core::lifecycle::ModelLifeCycle;
+use tbd_core::relationships::*;
+use tbd_core::relation::Relation;
+use tbd_core::repository::{Stores, Repository};
 
 use tbd_keyed::Keyed;
 

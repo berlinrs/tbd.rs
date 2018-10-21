@@ -1,9 +1,15 @@
-#![feature(async_await, await_macro, futures_api, pin, arbitrary_self_types)]
+#![feature(futures_api)]
 
 use rusqlite::Connection;
-use tbd_core::types::*;
+use tbd_core::changeset::*;
+use tbd_core::gateway::*;
 use tbd_core::query::*;
 use tbd_core::changeset::*;
+use tbd_core::execute::*;
+use tbd_core::transaction::*;
+use tbd_core::relation::Relation;
+use tbd_core::lifecycle::ModelLifeCycle;
+
 use futures::stream;
 use futures::future;
 use std::cell::RefCell;
@@ -15,6 +21,8 @@ type Statement = String;
 pub struct Sqlite3Gateway {
     pub connection: RefCell<Option<Connection>>
 }
+
+impl Autogenerates<i64> for Sqlite3Gateway {}
 
 pub struct Sqlite3Transaction {
     connection: Connection

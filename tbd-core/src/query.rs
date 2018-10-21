@@ -1,7 +1,34 @@
-use crate::types::*;
-use crate::types;
+use crate::execute::*;
+use crate::relation::Relation;
+use crate::repository::{Stores, Repository};
 
-use futures::prelude::*;
+pub trait QueryMarker {}
+
+pub struct One;
+pub struct All;
+pub struct Incomplete;
+
+impl QueryMarker for One {}
+impl QueryMarker for All {}
+impl QueryMarker for Incomplete {}
+
+pub trait Query {
+    type ReturnType;
+    type QueryMarker: QueryMarker;
+    type Parameters;
+
+    fn parameters(&self) -> &Self::Parameters;
+}
+
+impl<Q> Query for &Q where Q: Query {
+    type ReturnType = Q::ReturnType;
+    type QueryMarker = Q::QueryMarker;
+    type Parameters = Q::Parameters;
+
+    fn parameters(&self) -> &Self::Parameters {
+        (*self).parameters()
+    }
+}
 
 pub struct Limit<Q> {
     max: usize,
@@ -108,7 +135,7 @@ impl<Repos, R, ReturnType> Execute<Repos, R, ReturnType> for SelectFrom<R>
 
     fn execute(&self, repos: &Repos) -> Self::FutureType
         where Repos: Stores<R> {
-        types::ExecuteAll::execute_query(repos.gateway(), &self)
+        ExecuteAll::execute_query(repos.gateway(), &self)
     }
 }
 
@@ -122,6 +149,7 @@ impl<Repos, R, ReturnType, PK> Execute<Repos, R, ReturnType> for Find<PK, Select
 
     fn execute(&self, repos: &Repos) -> Self::FutureType
         where Repos: Stores<R> {
-        types::ExecuteOne::execute_query(repos.gateway(), &self)
+        ExecuteOne::execute_query(repos.gateway(), &self)
     }
 }
+

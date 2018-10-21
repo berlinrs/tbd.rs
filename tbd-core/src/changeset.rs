@@ -1,22 +1,21 @@
-use crate::types::*;
+use crate::repository::{Repository, Stores};
+use crate::transaction::{Transaction, TransactionImplementation};
+use crate::relation::Relation;
+use crate::gateway::Gateway;
+
 use std::cell::RefCell;
+use std::future::Future;
+use futures::future::Ready;
 
 pub trait Changes 
     where Self: Repository + Sized {
     fn change() -> Changeset<Self>;
 }
 
-pub trait TransactionImplementation where Self: Sized {
-    fn insert<R>(&mut self, m: &mut R::Wrapper) where R: Relation;
-}
-
-pub struct Transaction<T> 
-    where T: TransactionImplementation {
-    pub transaction: T
-}
-
 pub trait Changeable<R> where R: Repository,
                               Self: Sized {
+    //type Future: Future;
+
     fn insert<Rel>(self, m: Rel::Wrapper) -> Change<Self, R, Insert<Rel>>
         where R: Stores<Rel>,
               Rel: Relation;
@@ -57,6 +56,8 @@ pub struct Changeset<R: Repository> {
 }
 
 impl<R> Changeable<R> for Changeset<R> where R: Repository {
+    //type Future = Ready<()>;
+
     fn insert<Rel>(self, m: Rel::Wrapper) -> Change<Self, R, Insert<Rel>>
         where R: Stores<Rel>,
               Rel: Relation {
@@ -74,10 +75,9 @@ impl<R> Changeable<R> for Changeset<R> where R: Repository {
         repos.gateway().start_transaction()
     }
 
-      #[inline]
+    #[inline]
     fn commit(&self, repos: &R) {
-        // commiting an empty changeset is highly
-        // optimised
+        //futures::future::ok(())
     }
 }
 
@@ -107,7 +107,7 @@ impl<C, R, O> Changeable<R> for Change<C, R, O>
     }
 
     #[inline]
-    fn build_transaction(&self, repos: &R) -> Transaction<<R::Gateway as Gateway>::TransactionImplementation>{
+    fn build_transaction(&self, repos: &R) -> Transaction<<R::Gateway as Gateway>::TransactionImplementation> {
         let mut transaction = self.after.build_transaction(repos);
         self.operation.apply_on_transaction(&mut transaction.transaction);
         transaction
