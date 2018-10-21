@@ -1,5 +1,3 @@
-#![feature(specialization)]
-
 extern crate tbd_core;
 
 use tbd_core::model_wrappers::Wrapper;

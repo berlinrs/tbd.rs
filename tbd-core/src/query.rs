@@ -106,7 +106,7 @@ impl<Repos, R, ReturnType> Execute<Repos, R, ReturnType> for SelectFrom<R>
 
     type FutureType = <<Repos as Repository>::Gateway as ExecuteAll<ReturnType>>::Stream;
 
-    default fn execute(&self, repos: &Repos) -> Self::FutureType
+    fn execute(&self, repos: &Repos) -> Self::FutureType
         where Repos: Stores<R> {
         types::ExecuteAll::execute_query(repos.gateway(), &self)
     }
@@ -120,7 +120,7 @@ impl<Repos, R, ReturnType, PK> Execute<Repos, R, ReturnType> for Find<PK, Select
 
     type FutureType = <<Repos as Repository>::Gateway as ExecuteOne<ReturnType, Self::Parameters>>::Future;
 
-    default fn execute(&self, repos: &Repos) -> Self::FutureType
+    fn execute(&self, repos: &Repos) -> Self::FutureType
         where Repos: Stores<R> {
         types::ExecuteOne::execute_query(repos.gateway(), &self)
     }
