@@ -1,5 +1,6 @@
 #![feature(futures_api)]
 
+pub mod fieldset;
 pub mod query;
 pub mod changeset;
 pub mod model_wrappers;

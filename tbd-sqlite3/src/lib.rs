@@ -52,7 +52,7 @@ impl TransactionImplementation for Sqlite3Transaction {
         println!("inserted {}", insert_row_id);
 
         let mut wtr = vec![];
-        wtr.write_i64::<LittleEndian>(insert_row_id);
+        wtr.write_i64::<LittleEndian>(insert_row_id).unwrap();
         m.created(&wtr);
     }
 }
