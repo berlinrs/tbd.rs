@@ -194,14 +194,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tbd-memory"
-version = "0.1.0"
-dependencies = [
- "futures-preview 0.3.0-alpha.9 (registry+https://github.com/rust-lang/crates.io-index)",
- "tbd-core 0.1.0",
-]
-
-[[package]]
 name = "tbd-sqlite3"
 version = "0.1.0"
 dependencies = [

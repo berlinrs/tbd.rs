@@ -1,5 +1,6 @@
 use tbd_core::model_wrappers::Wrapper; 
 use tbd_core::lifecycle::ModelLifeCycle;
+use tbd_core::fieldset::*;
 
 use tbd_keyed::Keyed;  
 
@@ -7,6 +8,34 @@ use tbd_keyed::Keyed;
 pub struct Post {
     // TODO: These pubs must go
     pub content: String
+}
+
+#[derive(Clone, Default)]
+pub struct ContentField(String);
+
+impl Field for ContentField {
+    type Model = Post;
+    type Type = String;
+
+    fn name() -> &'static str {
+        "content"
+    }
+
+    fn get(model: &Post) -> &String {
+        &model.content
+    }
+
+     fn get_mut(model: &mut Post) -> &mut String {
+        &mut model.content
+    }
+}
+
+pub struct PostFieldSet {
+    pub content: ContentField
+}
+
+impl FieldSet for PostFieldSet {
+    type Model = Post;
 }
 
 impl ModelLifeCycle for Post {

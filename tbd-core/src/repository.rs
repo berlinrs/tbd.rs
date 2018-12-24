@@ -6,7 +6,7 @@ pub trait Repository {
     fn gateway(&self) -> &Self::Gateway;
 }
 
-pub trait Stores<R> : Repository {
+pub trait Stores<Rel> : Repository {
 
 }
 

@@ -1,7 +1,7 @@
 #![feature(async_await, await_macro, futures_api, pin, arbitrary_self_types, specialization)]
 
-use std::future::FutureObj;
-use std::task::Spawn;
+use futures::future::FutureObj;
+use futures::task::{Spawn, SpawnError};
 use futures::StreamExt;
 use futures::stream;
 use futures::future;

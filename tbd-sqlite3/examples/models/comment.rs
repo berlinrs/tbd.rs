@@ -5,9 +5,11 @@ use tbd_keyed::Keyed;
 
 #[derive(Debug, Clone)]
 pub struct Comment {
+    // TODO: These pubs must go
     pub content: String,
     pub post_id: i64
 }
+
 
 impl ModelLifeCycle for Comment {
     type PrimaryKey = i64;
