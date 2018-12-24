@@ -43,7 +43,7 @@ impl<F, R> Compile<SelectFrom<F, R>, Complete> for GenericSqlGateway where R: Re
 
 impl<F, R> Compile<SelectFrom<F, R>, Sparse> for GenericSqlGateway where R: Relation, F: FieldSet<Model=R::Model, Marker=Sparse> {
     fn compile(query: &SelectFrom<F, R>) -> CompiledQuery {
-        format!("SELECT * FROM {}", R::name())
+        format!("SELECT {} FROM {}", F::names().join(","), R::name())
     }
 }
 

@@ -46,6 +46,12 @@ impl AssociatedFieldSet for Post {
 impl FieldSet for PostFieldSet {
     type Model = Post;
     type Marker = Complete;
+
+    fn names() -> Vec<&'static str> {
+        let mut vec = Vec::new();
+        vec.push(ContentField::name());
+        vec
+    }
 }
 
 impl ModelLifeCycle for Post {

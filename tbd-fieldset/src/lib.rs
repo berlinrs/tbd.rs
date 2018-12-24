@@ -20,16 +20,31 @@ pub trait Field {
 pub trait FieldSet {
     type Model;
     type Marker: FieldSetMarker;
+
+    fn names() -> Vec<&'static str>;
 }
 
 impl<A, M> FieldSet for (A) where A: Field<Model = M> {
     type Model = M;
     type Marker = Sparse;
+
+    fn names() -> Vec<&'static str> {
+        let mut vec = Vec::new();
+        vec.push(A::name());
+        vec
+    }
 }
 
 impl<A, B, M> FieldSet for (A, B) where A: Field<Model = M>, B: Field<Model = M> {
     type Model = M;
     type Marker = Sparse;
+
+    fn names() -> Vec<&'static str> {
+        let mut vec = Vec::new();
+        vec.push(A::name());
+        vec.push(B::name());
+        vec
+    }
 }
 // impl<A, B, C, M> FieldSet<T, Model = M> for (A, B, C) where A: Field<Model = M>, B: Field<Model = M>, C: Field<Model = M> {}
 // impl<A, B, C, D, M> FieldSet<T, Model = M> for (A, B, C, D) where A: Field<Model = M>, B: Field<Model = M>, C: Field<Model = M>, D: Field<Model = M> {}
