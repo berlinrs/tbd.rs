@@ -35,7 +35,6 @@ impl Gateway for GenericSqlGateway {
 }
 
 impl<F, R> Compile<SelectFrom<F, R>, Complete> for GenericSqlGateway where R: Relation, F: FieldSet<Model=R::Model, Marker=Complete> {
-
     fn compile(query: &SelectFrom<F, R>) -> CompiledQuery {
         format!("SELECT * FROM {}", R::name())
     }
@@ -44,6 +43,13 @@ impl<F, R> Compile<SelectFrom<F, R>, Complete> for GenericSqlGateway where R: Re
 impl<F, R> Compile<SelectFrom<F, R>, Sparse> for GenericSqlGateway where R: Relation, F: FieldSet<Model=R::Model, Marker=Sparse> {
     fn compile(query: &SelectFrom<F, R>) -> CompiledQuery {
         format!("SELECT {} FROM {}", F::names().join(","), R::name())
+    }
+}
+
+
+impl<Q, M> Compile<Limit<Q>, M> for GenericSqlGateway where Q: Query + CompileFor<GenericSqlGateway, M>, M: FieldSetMarker {
+    fn compile(query: &Limit<Q>) -> CompiledQuery {
+        format!("{} LIMIT {}", query.inner().compile(), query.max())
     }
 }
 
@@ -59,4 +65,18 @@ fn subfield_select() {
     let query = select::<(ContentField)>().from::<Posts>();
     let result = GenericSqlGateway::compile(&query);
     assert_eq!("SELECT content FROM posts", result);
+}
+
+#[test]
+fn simple_select_limit() {
+    let query = select::<Post>().from::<Posts>().limit(1);
+    let result = GenericSqlGateway::compile(&query);
+    assert_eq!("SELECT * FROM posts LIMIT 1", result);
+}
+
+#[test]
+fn subfield_select_limit() {
+    let query = select::<(ContentField)>().from::<Posts>().limit(1);
+    let result = GenericSqlGateway::compile(&query);
+    assert_eq!("SELECT content FROM posts LIMIT 1", result);
 }

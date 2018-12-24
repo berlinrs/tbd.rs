@@ -36,6 +36,28 @@ pub struct Limit<Q> {
     inner: Q,
 }
 
+
+impl<Q> Query for Limit<Q> where Q: Query {
+    type ReturnType = Q::ReturnType;
+    type QueryMarker = One;
+    type Parameters = ();
+
+    fn parameters(&self) -> &() {
+        &()
+    }
+}
+
+impl<Q> Limit<Q> where Q: Query {
+    pub fn max(&self) -> usize {
+        self.max
+    }
+
+    pub fn inner(&self) -> &Q {
+        &self.inner
+    }
+}
+
+
 pub struct FindParameters<PK> {
     pub id: PK
 }
@@ -107,7 +129,7 @@ impl<F, R> Query for SelectFrom<F, R>
 }
 
 impl<F, R> SelectFrom<F, R> 
-    where F:FieldSet,
+    where F: FieldSet,
           R: Relation {
 
     pub fn limit(self, max: usize) -> Limit<Self> {
