@@ -4,7 +4,7 @@ use crate::models::comment::*;
 use std::collections::HashMap;
 
 use tbd_core::relationships::*;
-use tbd_core::relation::Relation;
+use tbd_relation::Relation;
 
 use tbd_keyed::Keyed;
 
@@ -15,7 +15,7 @@ pub struct Posts;
 impl Relation for Posts {
     type PrimaryKey = i64;
     type Model = Post;
-    type FieldSet = PostFieldSet;
+    type Fields = PostFieldSet;
     type Wrapper = KeyedPost;
 
     fn hydrate(model: &KeyedPost) -> HashMap<String, String> {
@@ -45,7 +45,7 @@ pub struct Comments;
 impl Relation for Comments {
     type PrimaryKey = i64;
     type Model = Comment;
-    type FieldSet = CommentFieldSet;
+    type Fields = CommentFieldSet;
     type Wrapper = Keyed<Self::PrimaryKey, Comment>;
 
     fn hydrate(model: &Keyed<Self::PrimaryKey, Comment>) -> HashMap<String, String> {

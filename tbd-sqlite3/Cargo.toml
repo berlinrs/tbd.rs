@@ -11,6 +11,8 @@ tbd-fieldset = { path = "../tbd-fieldset" }
 tbd-query = { path = "../tbd-query" }
 tbd-relation = { path = "../tbd-relation" }
 tbd-lifecycle = { path = "../tbd-lifecycle" }
+tbd-gateway = { path = "../tbd-gateway" }
+tbd-model-wrappers = { path = "../tbd-model-wrappers" }
 mini-exec = { path = "../mini-exec" }
 rusqlite = "0.14.0"
 futures-preview = "0.3.0-alpha.6"

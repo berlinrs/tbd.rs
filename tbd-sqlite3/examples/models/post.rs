@@ -1,6 +1,6 @@
-use tbd_core::model_wrappers::Wrapper; 
-use tbd_core::lifecycle::ModelLifeCycle;
-use tbd_core::fieldset::*;
+use tbd_model_wrappers::Wrapper;
+use tbd_lifecycle::ModelLifeCycle;
+use tbd_fieldset::*;
 
 use tbd_keyed::Keyed;  
 

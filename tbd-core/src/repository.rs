@@ -1,4 +1,4 @@
-use crate::gateway::Gateway;
+use tbd_gateway::Gateway;
 
 pub trait Repository {
     type Gateway: Gateway;

@@ -2,7 +2,7 @@ use futures::prelude::*;
 use tbd_query::{Query, One, All, SelectFrom, Find};
 use tbd_relation::Relation;
 use crate::repository::{Repository,Stores};
-use crate::gateway::Gateway;
+use tbd_gateway::Gateway;
 
 //This must become `ExecuteAll<Relation>`, because we
 //probably need the relation name

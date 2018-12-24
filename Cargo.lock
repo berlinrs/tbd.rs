@@ -184,6 +184,7 @@ version = "0.1.0"
 dependencies = [
  "futures-preview 0.3.0-alpha.9 (registry+https://github.com/rust-lang/crates.io-index)",
  "tbd-fieldset 0.1.0",
+ "tbd-gateway 0.1.0",
  "tbd-query 0.1.0",
  "tbd-relation 0.1.0",
 ]
@@ -191,6 +192,13 @@ dependencies = [
 [[package]]
 name = "tbd-fieldset"
 version = "0.1.0"
+
+[[package]]
+name = "tbd-gateway"
+version = "0.1.0"
+dependencies = [
+ "tbd-relation 0.1.0",
+]
 
 [[package]]
 name = "tbd-key"
@@ -247,8 +255,10 @@ dependencies = [
  "rusqlite 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tbd-core 0.1.0",
  "tbd-fieldset 0.1.0",
+ "tbd-gateway 0.1.0",
  "tbd-keyed 0.1.0",
  "tbd-lifecycle 0.1.0",
+ "tbd-model-wrappers 0.1.0",
  "tbd-query 0.1.0",
  "tbd-relation 0.1.0",
 ]

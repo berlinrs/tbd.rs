@@ -1,3 +1,5 @@
+pub mod transaction;
+
 use crate::transaction::{Transaction, TransactionImplementation};
 
 pub trait Gateway {

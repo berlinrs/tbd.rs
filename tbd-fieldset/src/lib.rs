@@ -32,4 +32,6 @@ pub trait ToModel<F: FieldSet> {
 }
 
 impl FieldType for String {}
+impl FieldType for i64 {}
+
 impl<T> FieldType for Option<T> where T: FieldType {}

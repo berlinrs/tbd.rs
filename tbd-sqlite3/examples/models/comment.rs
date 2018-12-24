@@ -1,5 +1,6 @@
-use tbd_core::model_wrappers::Wrapper; 
-use tbd_core::lifecycle::ModelLifeCycle;
+use tbd_model_wrappers::Wrapper;
+use tbd_lifecycle::ModelLifeCycle;
+use tbd_fieldset::*;
 
 use tbd_keyed::Keyed;   
 
@@ -10,6 +11,55 @@ pub struct Comment {
     pub post_id: i64
 }
 
+#[derive(Clone, Default)]
+pub struct ContentField(String);
+
+
+#[derive(Clone, Default)]
+pub struct PostId(i64);
+
+impl Field for ContentField {
+    type Model = Comment;
+    type Type = String;
+
+    fn name() -> &'static str {
+        "content"
+    }
+
+    fn get(model: &Comment) -> &String {
+        &model.content
+    }
+
+     fn get_mut(model: &mut Comment) -> &mut String {
+        &mut model.content
+    }
+}
+
+impl Field for PostId {
+    type Model = Comment;
+    type Type = i64;
+
+    fn name() -> &'static str {
+        "post_id"
+    }
+
+    fn get(model: &Comment) -> &i64 {
+        &model.post_id
+    }
+
+     fn get_mut(model: &mut Comment) -> &mut i64 {
+        &mut model.post_id
+    }
+}
+
+pub struct CommentFieldSet {
+    pub content: ContentField,
+    pub id: PostId
+}
+
+impl FieldSet for CommentFieldSet {
+    type Model = Comment;
+}
 
 impl ModelLifeCycle for Comment {
     type PrimaryKey = i64;

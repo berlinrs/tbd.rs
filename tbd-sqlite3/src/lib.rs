@@ -2,11 +2,11 @@
 
 use rusqlite::Connection;
 use tbd_core::changeset::*;
-use tbd_core::gateway::*;
+use tbd_gateway::*;
+use tbd_gateway::transaction::*;
 use tbd_query::*;
 use tbd_core::changeset::*;
 use tbd_core::execute::*;
-use tbd_core::transaction::*;
 use tbd_relation::Relation;
 use tbd_lifecycle::ModelLifeCycle;
 

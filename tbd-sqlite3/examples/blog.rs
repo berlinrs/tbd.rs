@@ -17,9 +17,10 @@ use futures::task::Spawn;
 use rusqlite::Connection;
 
 use tbd_sqlite3::Sqlite3Gateway;
-use tbd_core::query::*;
+use tbd_query::*;
 use tbd_core::changeset::*;
 use tbd_core::repository::{Stores, Repository};
+use tbd_core::execute::Execute;
 
 use tbd_keyed::Keyed;
 
