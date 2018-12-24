@@ -10,6 +10,8 @@ use tbd_gateway::*;
 use tbd_gateway::transaction::*;
 use tbd_model_wrappers::Wrapper;
 use tbd_relation::Relation;
+use tbd_relation::fieldset::*;
+
 use tbd_query::compile::*;
 use tbd_fieldset::*;
 
@@ -20,7 +22,7 @@ struct GenericSqlGateway;
 struct GenericSqlGatewayTransactionImplementation;
 
 impl TransactionImplementation for GenericSqlGatewayTransactionImplementation {
-    fn insert<R>(&mut self, m: &mut R::Wrapper) where R: Relation {
+    fn insert<R>(&mut self, m: &mut R::Fields) where R: Relation {
 
     }
 }
@@ -36,13 +38,13 @@ impl Gateway for GenericSqlGateway {
     }
 }
 
-impl<F, R> Compile<SelectFrom<F, R>, Complete> for GenericSqlGateway where R: Relation, F: FieldSet<Model=R::Model, Marker=Complete> {
+impl<F, R> Compile<SelectFrom<F, R>, Complete> for GenericSqlGateway where R: Relation, F: RelationFieldSet<Relation=R> + FieldSet<Marker=Complete> {
     fn compile(_query: &SelectFrom<F, R>) -> CompiledQuery {
         format!("SELECT * FROM {}", R::name())
     }
 }
 
-impl<F, R> Compile<SelectFrom<F, R>, Sparse> for GenericSqlGateway where R: Relation, F: FieldSet<Model=R::Model, Marker=Sparse> {
+impl<F, R> Compile<SelectFrom<F, R>, Sparse> for GenericSqlGateway where R: Relation,  F: RelationFieldSet<Relation=R> + FieldSet<Marker=Sparse> {
     fn compile(_query: &SelectFrom<F, R>) -> CompiledQuery {
         format!("SELECT {} FROM {}", F::names().join(","), R::name())
     }
@@ -55,7 +57,7 @@ impl<Q, M> Compile<Limit<Q>, M> for GenericSqlGateway where Q: Query + CompileFo
 }
 
 // TODO: The "Display" bound on the PK should probably become a ToSql one
-impl<F, Q, M> Compile<Find<F, Q>, M> for GenericSqlGateway where Q: Query + CompileFor<GenericSqlGateway, M>, F: PrimaryField, M: FieldSetMarker, F::Type: Display {
+impl<F, Q, M> Compile<Find<F, Q>, M> for GenericSqlGateway where Q: Query + CompileFor<GenericSqlGateway, M>, F: PrimaryField + RelationField + FieldSet<Marker=M>, M: FieldSetMarker, F::Type: Display {
     fn compile(query: &Find<F, Q>) -> CompiledQuery {
         format!("{} WHERE {} = {} LIMIT 1", query.inner().compile(), F::name(), query.parameter())
     }

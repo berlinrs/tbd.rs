@@ -1,6 +1,7 @@
 pub mod compile;
 
 use tbd_relation::Relation;
+use tbd_relation::fieldset::*;
 use tbd_fieldset::*;
 
 use std::fmt::Display;
@@ -112,7 +113,8 @@ pub fn select<F>() -> Select<F::Set> where F: AssociatedFieldSet {
 
 impl<F> Select<F> where F: FieldSet {
     pub fn from<R>(self) -> SelectFrom<F, R>
-        where R: Relation<Model = F::Model> {
+        where F: RelationFieldSet<Relation = R>,
+              R: Relation {
             SelectFrom { fieldset: std::marker::PhantomData, relation: std::marker::PhantomData }
     }
 }

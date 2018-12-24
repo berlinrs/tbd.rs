@@ -7,7 +7,6 @@ pub trait Repository {
 }
 
 pub trait Stores<Rel> : Repository {
-
 }
 
 impl<A, B, T> Stores<(A, B)> for T where T: Stores<A> + Stores<B> {} 

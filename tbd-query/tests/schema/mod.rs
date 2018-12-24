@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use tbd_relation::Relation;
+use tbd_relation::fieldset::*;
 
 use tbd_model_wrappers::Wrapper;
 use tbd_lifecycle::ModelLifeCycle;
@@ -15,43 +16,25 @@ pub struct Post {
 }
 
 #[derive(Clone, Default)]
-pub struct IdField(i64);
+pub struct IdField;
 
-// TODO: This implementation points to a problem with the wrapper model
 impl Field for IdField {
-    type Model = Post;
     type Type = i64;
-
-    fn name() -> &'static str {
-        "id"
-    }
-
-    fn get(model: &Post) -> &i64 {
-        &0
-    }
 }
 
 impl PrimaryField for IdField {}
 
 
 #[derive(Clone, Default)]
-pub struct ContentField(String);
+pub struct ContentField;
 
 impl Field for ContentField {
-    type Model = Post;
     type Type = String;
-
-    fn name() -> &'static str {
-        "content"
-    }
-
-    fn get(model: &Post) -> &String {
-        &model.content
-    }
 }
 
 #[derive(Default)]
 pub struct PostFieldSet {
+    pub id: IdField,
     pub content: ContentField
 }
 
@@ -60,52 +43,7 @@ impl AssociatedFieldSet for Post {
 }
 
 impl FieldSet for PostFieldSet {
-    type Model = Post;
     type Marker = Complete;
-
-    fn names() -> Vec<&'static str> {
-        let mut vec = Vec::new();
-        vec.push(ContentField::name());
-        vec
-    }
-}
-
-impl ModelLifeCycle for Post {
-    type PrimaryKey = i64;
-
-    fn created(&mut self, pk: &[u8]) {
-
-    }
-}
-
-pub struct KeyedPost(pub Keyed<i64, Post>);
-
-impl ModelLifeCycle for KeyedPost {
-    type PrimaryKey = i64;
-
-    fn created(&mut self, pk: &[u8]) {
-        self.0.created(pk)
-    }
-}
-
-impl Wrapper for Post {
-    type Wrapping = Post;
-    type Returning = Post;
-
-    fn wrap(m: Post) -> Post {
-        m
-    }
-}
-
-impl Wrapper for KeyedPost {
-    type Wrapping = Post;
-    type Returning = KeyedPost;
-
-    fn wrap(m: Post) -> KeyedPost {
-        KeyedPost(
-            Keyed::new(m)
-        )
-    }
 }
 
 pub struct Posts;
@@ -113,21 +51,36 @@ pub struct Posts;
 impl Relation for Posts {
     type PrimaryKey = i64;
     type PrimaryField = IdField;
-    type Model = Post;
     type Fields = PostFieldSet;
-    type Wrapper = KeyedPost;
-
-    fn hydrate(model: &KeyedPost) -> HashMap<String, String> {
-        let model = &model.0;
-        let mut h = HashMap::new();
-        if let Some(id) = model.pk {
-            h.insert("id".to_string(), id.to_string());
-        }
-        h.insert("content".to_string(), format!("{}{}{}", '"', model.content.to_string(), '"'));
-        h
-    }
 
     fn name() -> &'static str {
         "posts"
+    }
+}
+
+impl RelationField for IdField {
+    type Relation = Posts;
+
+    fn name() -> &'static str {
+        "id"
+    }
+}
+
+impl RelationField for ContentField {
+    type Relation = Posts;
+
+    fn name() -> &'static str {
+        "content"
+    }
+}
+
+impl RelationFieldSet for PostFieldSet {
+    type Relation = Posts;
+
+    fn names() -> Vec<&'static str> {
+        let mut vec = Vec::new();
+        vec.push(IdField::name());
+        vec.push(ContentField::name());
+        vec
     }
 }

@@ -9,16 +9,7 @@ impl FieldSetMarker for Complete {}
 impl FieldSetMarker for Sparse {}
 
 pub trait Field {
-    type Model;
     type Type: FieldType;
-
-    fn name() -> &'static str;
-    // TODO: This interface must be replaced
-    // it should take &self, for proper mapping later
-    // fieldsets moved from being abstractions over a model
-    // towards mapping steps
-    fn get(model: &Self::Model) -> &Self::Type;
-    //fn get_mut(model: &mut Self::Model) -> &mut Self::Type;
 }
 
 /// Marks a primary field
@@ -26,43 +17,22 @@ pub trait PrimaryField: Field {
 
 }
 
+/// TODO: Do FieldSets need to be tied to models? no
+/// if not, what does the Marker represent? dunno
 pub trait FieldSet {
-    type Model;
     type Marker: FieldSetMarker;
-
-    fn names() -> Vec<&'static str>;
 }
 
-impl<A, M> FieldSet for (A) where A: Field<Model = M> {
-    type Model = M;
+pub trait ModelMappedFieldSet: FieldSet<Marker=Complete> {
+    type Model;
+}
+
+impl<A> FieldSet for (A) where A: Field {
     type Marker = Sparse;
-
-    fn names() -> Vec<&'static str> {
-        let mut vec = Vec::new();
-        vec.push(A::name());
-        vec
-    }
 }
 
-impl<A, B, M> FieldSet for (A, B) where A: Field<Model = M>, B: Field<Model = M> {
-    type Model = M;
+impl<A, B> FieldSet for (A, B) where A: Field, B: Field {
     type Marker = Sparse;
-
-    fn names() -> Vec<&'static str> {
-        let mut vec = Vec::new();
-        vec.push(A::name());
-        vec.push(B::name());
-        vec
-    }
-}
-// impl<A, B, C, M> FieldSet<T, Model = M> for (A, B, C) where A: Field<Model = M>, B: Field<Model = M>, C: Field<Model = M> {}
-// impl<A, B, C, D, M> FieldSet<T, Model = M> for (A, B, C, D) where A: Field<Model = M>, B: Field<Model = M>, C: Field<Model = M>, D: Field<Model = M> {}
-
-// pub trait Apply<F: FieldSet, T: FieldSet> {
-// }
-
-pub trait ToModel<F: FieldSet> {
-    fn create(self) -> F::Model;
 }
 
 pub trait AssociatedFieldSet {
