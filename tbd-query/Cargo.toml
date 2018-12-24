@@ -1,7 +1,8 @@
 [package]
-name = "tbd-timestamped"
+name = "tbd-query"
 version = "0.1.0"
 authors = ["Florian Gilcher <florian.gilcher@asquera.de>"]
+edition = "2018"
 
 [dependencies]
-tbd-core = { path = "../tbd-core" }
+tbd-relation = { path = "../tbd-relation" }

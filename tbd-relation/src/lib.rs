@@ -1,12 +1,14 @@
-use crate::model_wrappers::Wrapper;
-use crate::lifecycle::ModelLifeCycle;
-use crate::key::Key;
+use tbd_model_wrappers::Wrapper;
+use tbd_lifecycle::ModelLifeCycle;
+use tbd_key::Key;
+use tbd_fieldset::FieldSet;
 
 use std::collections::HashMap;
 
 pub trait Relation {
     type PrimaryKey: Key;
     type Model;
+    type Fields: FieldSet<Model=Self::Model>;
     type Wrapper: Wrapper<Wrapping=Self::Model> + ModelLifeCycle<PrimaryKey=Self::PrimaryKey>;
 
     // TODO change this signature, HashMap<String, String> is obviously

@@ -1,4 +1,4 @@
-use crate::relation::Relation;
+use tbd_relation::Relation;
 
 pub trait HasManyRelationShip {
     type Of: Relation;

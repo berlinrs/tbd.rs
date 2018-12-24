@@ -7,6 +7,10 @@ edition = "2018"
 [dependencies]
 tbd-core = { path = "../tbd-core" }
 tbd-keyed = { path = "../tbd-keyed" }
+tbd-fieldset = { path = "../tbd-fieldset" }
+tbd-query = { path = "../tbd-query" }
+tbd-relation = { path = "../tbd-relation" }
+tbd-lifecycle = { path = "../tbd-lifecycle" }
 mini-exec = { path = "../mini-exec" }
 rusqlite = "0.14.0"
 futures-preview = "0.3.0-alpha.6"

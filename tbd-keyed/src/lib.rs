@@ -1,8 +1,6 @@
-extern crate tbd_core;
-
-use tbd_core::model_wrappers::Wrapper;
-use tbd_core::lifecycle::ModelLifeCycle;
-use tbd_core::key::Key;
+use tbd_model_wrappers::Wrapper;
+use tbd_lifecycle::ModelLifeCycle;
+use tbd_key::Key;
 
 use std::ops::{Deref, DerefMut};
 

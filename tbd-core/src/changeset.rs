@@ -1,6 +1,6 @@
 use crate::repository::{Repository, Stores};
 use crate::transaction::{Transaction, TransactionImplementation};
-use crate::relation::Relation;
+use tbd_relation::Relation;
 use crate::gateway::Gateway;
 
 use std::cell::RefCell;

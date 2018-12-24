@@ -182,15 +182,59 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "tbd-core"
 version = "0.1.0"
 dependencies = [
- "byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures-preview 0.3.0-alpha.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tbd-fieldset 0.1.0",
+ "tbd-query 0.1.0",
+ "tbd-relation 0.1.0",
+]
+
+[[package]]
+name = "tbd-fieldset"
+version = "0.1.0"
+
+[[package]]
+name = "tbd-key"
+version = "0.1.0"
+dependencies = [
+ "byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "tbd-keyed"
 version = "0.1.0"
 dependencies = [
- "tbd-core 0.1.0",
+ "tbd-key 0.1.0",
+ "tbd-lifecycle 0.1.0",
+ "tbd-model-wrappers 0.1.0",
+]
+
+[[package]]
+name = "tbd-lifecycle"
+version = "0.1.0"
+dependencies = [
+ "tbd-key 0.1.0",
+ "tbd-model-wrappers 0.1.0",
+]
+
+[[package]]
+name = "tbd-model-wrappers"
+version = "0.1.0"
+
+[[package]]
+name = "tbd-query"
+version = "0.1.0"
+dependencies = [
+ "tbd-relation 0.1.0",
+]
+
+[[package]]
+name = "tbd-relation"
+version = "0.1.0"
+dependencies = [
+ "tbd-fieldset 0.1.0",
+ "tbd-key 0.1.0",
+ "tbd-lifecycle 0.1.0",
+ "tbd-model-wrappers 0.1.0",
 ]
 
 [[package]]
@@ -202,14 +246,11 @@ dependencies = [
  "mini-exec 0.1.0",
  "rusqlite 0.14.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "tbd-core 0.1.0",
+ "tbd-fieldset 0.1.0",
  "tbd-keyed 0.1.0",
-]
-
-[[package]]
-name = "tbd-timestamped"
-version = "0.1.0"
-dependencies = [
- "tbd-core 0.1.0",
+ "tbd-lifecycle 0.1.0",
+ "tbd-query 0.1.0",
+ "tbd-relation 0.1.0",
 ]
 
 [[package]]

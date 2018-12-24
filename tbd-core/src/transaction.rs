@@ -1,4 +1,4 @@
-use crate::relation::Relation;
+use tbd_relation::Relation;
 
 pub trait TransactionImplementation where Self: Sized {
     fn insert<R>(&mut self, m: &mut R::Wrapper) where R: Relation;

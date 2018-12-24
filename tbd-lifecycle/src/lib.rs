@@ -1,5 +1,5 @@
-use crate::model_wrappers::Wrapper;
-use crate::key::Key;
+use tbd_model_wrappers::Wrapper;
+use tbd_key::Key;
 
 pub trait ModelLifeCycle : Wrapper {
     type PrimaryKey: Key;

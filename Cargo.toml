@@ -1,2 +1,2 @@
 [workspace]
-members = ["tbd-core", "tbd-sqlite3", "tbd-keyed", "tbd-timestamped", "mini-exec"]
+members = ["tbd-core", "tbd-sqlite3", "tbd-keyed", "tbd-fieldset", "tbd-relation", "tbd-lifecycle", "tbd-model-wrappers", "tbd-key", "mini-exec"]

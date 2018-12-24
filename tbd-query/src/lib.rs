@@ -1,6 +1,4 @@
-use crate::execute::*;
-use crate::relation::Relation;
-use crate::repository::{Stores, Repository};
+use tbd_relation::Relation;
 
 pub trait QueryMarker {}
 
@@ -106,50 +104,10 @@ impl<R> SelectFrom<R>
     where R: Relation {
 
     pub fn limit(self, max: usize) -> Limit<Self> {
-        Limit { max: max, inner: self } // why should I?
+        Limit { max: max, inner: self }
     }
 
     pub fn find(self, id: R::PrimaryKey) -> Find<R::PrimaryKey, Self> {
         Find::new(id, self)
     }
 }
-
-pub trait Execute<Repos, R, ReturnType>
-    where R: Relation,
-          Repos: Repository,
-          Self: Query<ReturnType=ReturnType> {
-    
-    type FutureType;
-
-    fn execute(&self, repos: &Repos) -> Self::FutureType
-        where Repos: Stores<R>;
-}
-
-impl<Repos, R, ReturnType> Execute<Repos, R, ReturnType> for SelectFrom<R>
-    where R: Relation,
-          Repos: Repository,
-          Repos::Gateway: ExecuteAll<ReturnType>,
-          Self: Query<QueryMarker=All, ReturnType=ReturnType> {
-
-    type FutureType = <<Repos as Repository>::Gateway as ExecuteAll<ReturnType>>::Stream;
-
-    fn execute(&self, repos: &Repos) -> Self::FutureType
-        where Repos: Stores<R> {
-        ExecuteAll::execute_query(repos.gateway(), &self)
-    }
-}
-
-impl<Repos, R, ReturnType, PK> Execute<Repos, R, ReturnType> for Find<PK, SelectFrom<R>>
-    where R: Relation,
-          Repos: Repository,
-          Repos::Gateway: ExecuteOne<ReturnType, Self::Parameters>,
-          Self: Query<QueryMarker=One, ReturnType=ReturnType> {
-
-    type FutureType = <<Repos as Repository>::Gateway as ExecuteOne<ReturnType, Self::Parameters>>::Future;
-
-    fn execute(&self, repos: &Repos) -> Self::FutureType
-        where Repos: Stores<R> {
-        ExecuteOne::execute_query(repos.gateway(), &self)
-    }
-}
-

@@ -15,6 +15,7 @@ pub struct Posts;
 impl Relation for Posts {
     type PrimaryKey = i64;
     type Model = Post;
+    type FieldSet = PostFieldSet;
     type Wrapper = KeyedPost;
 
     fn hydrate(model: &KeyedPost) -> HashMap<String, String> {
@@ -44,6 +45,7 @@ pub struct Comments;
 impl Relation for Comments {
     type PrimaryKey = i64;
     type Model = Comment;
+    type FieldSet = CommentFieldSet;
     type Wrapper = Keyed<Self::PrimaryKey, Comment>;
 
     fn hydrate(model: &Keyed<Self::PrimaryKey, Comment>) -> HashMap<String, String> {

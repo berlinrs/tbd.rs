@@ -11,6 +11,7 @@ pub trait Field {
 
 pub trait FieldSet {
     type Model;
+
 }
 
 impl<A, M> FieldSet for (A) where A: Field<Model = M> {
@@ -31,4 +32,4 @@ pub trait ToModel<F: FieldSet> {
 }
 
 impl FieldType for String {}
-impl<T> FieldType for Option<T> where T: FieldType {};
+impl<T> FieldType for Option<T> where T: FieldType {}

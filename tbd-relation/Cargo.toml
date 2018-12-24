@@ -1,11 +1,11 @@
 [package]
-name = "tbd-core"
+name = "tbd-relation"
 version = "0.1.0"
 authors = ["Florian Gilcher <florian.gilcher@asquera.de>"]
 edition = "2018"
 
 [dependencies]
-futures-preview = "0.3.0-alpha.6"
 tbd-fieldset = { path = "../tbd-fieldset" }
-tbd-query = { path = "../tbd-query" }
-tbd-relation = { path = "../tbd-relation" }
+tbd-model-wrappers = { path = "../tbd-model-wrappers" }
+tbd-lifecycle = { path = "../tbd-lifecycle" }
+tbd-key = { path = "../tbd-key" }
