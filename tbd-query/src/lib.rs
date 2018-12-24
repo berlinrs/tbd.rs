@@ -3,6 +3,7 @@ pub mod compile;
 use tbd_relation::Relation;
 use tbd_fieldset::*;
 
+use std::fmt::Display;
 pub trait QueryMarker {}
 
 pub struct One;
@@ -57,28 +58,36 @@ impl<Q> Limit<Q> where Q: Query {
     }
 }
 
-
-pub struct FindParameters<PK> {
-    pub id: PK
+// TODO: Display should be something else, ToParam, for example
+pub struct FindParameters<F> where F: Field, F::Type: Display {
+    pub parameter: F::Type
 }
 
-pub struct Find<PK, Q> {
-    params: FindParameters<PK>,
-    query: Limit<Q>,
+pub struct Find<F, Q> where F: Field, F::Type: Display {
+    params: FindParameters<F>,
+    query: Q,
 }
 
-impl<PK, Q> Find<PK, Q> {
-    fn new(id: PK, query: Q) -> Self {
-        Find { params: FindParameters { id: id }, query: Limit { max: 1, inner: query }}
+impl<F, Q> Find<F, Q> where F: Field, F::Type: Display {
+    fn new(parameter: F::Type, query: Q) -> Self {
+        Find { params: FindParameters { parameter: parameter }, query: query}
+    }
+
+    pub fn parameter(&self) -> &F::Type {
+        &self.params.parameter
+    }
+
+    pub fn inner(&self) -> &Q {
+        &self.query
     }
 }
 
-impl<PK, Q> Query for Find<PK, Q> where Q: Query {
+impl<F, Q> Query for Find<F, Q> where Q: Query, F: Field, F::Type: Display {
     type ReturnType = Q::ReturnType;
     type QueryMarker = One;
-    type Parameters = FindParameters<PK>;
+    type Parameters = FindParameters<F>;
 
-    fn parameters(&self) -> &FindParameters<PK> {
+    fn parameters(&self) -> &FindParameters<F> {
         &self.params
     }
 }
@@ -130,13 +139,14 @@ impl<F, R> Query for SelectFrom<F, R>
 
 impl<F, R> SelectFrom<F, R> 
     where F: FieldSet,
-          R: Relation {
+          R: Relation,
+          R::PrimaryKey: Display {
 
     pub fn limit(self, max: usize) -> Limit<Self> {
         Limit { max: max, inner: self }
     }
 
-    pub fn find(self, id: R::PrimaryKey) -> Find<R::PrimaryKey, Self> {
+    pub fn find(self, id: R::PrimaryKey) -> Find<R::PrimaryField, Self> {
         Find::new(id, self)
     }
 }

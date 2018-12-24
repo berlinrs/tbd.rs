@@ -4,6 +4,8 @@ mod schema;
 
 use crate::schema::*;
 
+use std::fmt::Display;
+
 use tbd_gateway::*;
 use tbd_gateway::transaction::*;
 use tbd_model_wrappers::Wrapper;
@@ -35,21 +37,27 @@ impl Gateway for GenericSqlGateway {
 }
 
 impl<F, R> Compile<SelectFrom<F, R>, Complete> for GenericSqlGateway where R: Relation, F: FieldSet<Model=R::Model, Marker=Complete> {
-    fn compile(query: &SelectFrom<F, R>) -> CompiledQuery {
+    fn compile(_query: &SelectFrom<F, R>) -> CompiledQuery {
         format!("SELECT * FROM {}", R::name())
     }
 }
 
 impl<F, R> Compile<SelectFrom<F, R>, Sparse> for GenericSqlGateway where R: Relation, F: FieldSet<Model=R::Model, Marker=Sparse> {
-    fn compile(query: &SelectFrom<F, R>) -> CompiledQuery {
+    fn compile(_query: &SelectFrom<F, R>) -> CompiledQuery {
         format!("SELECT {} FROM {}", F::names().join(","), R::name())
     }
 }
 
-
 impl<Q, M> Compile<Limit<Q>, M> for GenericSqlGateway where Q: Query + CompileFor<GenericSqlGateway, M>, M: FieldSetMarker {
     fn compile(query: &Limit<Q>) -> CompiledQuery {
         format!("{} LIMIT {}", query.inner().compile(), query.max())
+    }
+}
+
+// TODO: The "Display" bound on the PK should probably become a ToSql one
+impl<F, Q, M> Compile<Find<F, Q>, M> for GenericSqlGateway where Q: Query + CompileFor<GenericSqlGateway, M>, F: PrimaryField, M: FieldSetMarker, F::Type: Display {
+    fn compile(query: &Find<F, Q>) -> CompiledQuery {
+        format!("{} WHERE {} = {} LIMIT 1", query.inner().compile(), F::name(), query.parameter())
     }
 }
 
@@ -80,3 +88,18 @@ fn subfield_select_limit() {
     let result = GenericSqlGateway::compile(&query);
     assert_eq!("SELECT content FROM posts LIMIT 1", result);
 }
+
+#[test]
+fn simple_select_find() {
+    let query = select::<Post>().from::<Posts>().limit(1);
+    let result = GenericSqlGateway::compile(&query);
+    assert_eq!("SELECT * FROM posts LIMIT 1", result);
+}
+
+#[test]
+fn subfield_select_find() {
+    let query = select::<(ContentField)>().from::<Posts>().find(1);
+    let result = GenericSqlGateway::compile(&query);
+    assert_eq!("SELECT content FROM posts WHERE id = 1 LIMIT 1", result);
+}
+

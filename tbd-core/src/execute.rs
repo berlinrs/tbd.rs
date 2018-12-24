@@ -26,7 +26,6 @@ pub trait ExecuteOne<ReturnType, Parameters>: Gateway {
         where Q: Query<QueryMarker=One, ReturnType=ReturnType, Parameters=Parameters>;
 }
 
-
 pub trait Execute<Repos, R, ReturnType>
     where R: Relation,
           Repos: Repository,

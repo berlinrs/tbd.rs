@@ -13,8 +13,17 @@ pub trait Field {
     type Type: FieldType;
 
     fn name() -> &'static str;
+    // TODO: This interface must be replaced
+    // it should take &self, for proper mapping later
+    // fieldsets moved from being abstractions over a model
+    // towards mapping steps
     fn get(model: &Self::Model) -> &Self::Type;
-    fn get_mut(model: &mut Self::Model) -> &mut Self::Type;
+    //fn get_mut(model: &mut Self::Model) -> &mut Self::Type;
+}
+
+/// Marks a primary field
+pub trait PrimaryField: Field {
+
 }
 
 pub trait FieldSet {

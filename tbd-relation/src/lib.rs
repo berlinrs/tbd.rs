@@ -6,7 +6,8 @@ use tbd_fieldset::*;
 use std::collections::HashMap;
 
 pub trait Relation {
-    type PrimaryKey: Key;
+    type PrimaryKey: Key + FieldType;
+    type PrimaryField: Field<Type=Self::PrimaryKey> + PrimaryField;
     type Model;
     type Fields: FieldSet<Marker=Complete, Model=Self::Model>;
     type Wrapper: Wrapper<Wrapping=Self::Model> + ModelLifeCycle<PrimaryKey=Self::PrimaryKey>;

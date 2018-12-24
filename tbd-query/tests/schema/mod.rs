@@ -15,6 +15,26 @@ pub struct Post {
 }
 
 #[derive(Clone, Default)]
+pub struct IdField(i64);
+
+// TODO: This implementation points to a problem with the wrapper model
+impl Field for IdField {
+    type Model = Post;
+    type Type = i64;
+
+    fn name() -> &'static str {
+        "id"
+    }
+
+    fn get(model: &Post) -> &i64 {
+        &0
+    }
+}
+
+impl PrimaryField for IdField {}
+
+
+#[derive(Clone, Default)]
 pub struct ContentField(String);
 
 impl Field for ContentField {
@@ -27,10 +47,6 @@ impl Field for ContentField {
 
     fn get(model: &Post) -> &String {
         &model.content
-    }
-
-     fn get_mut(model: &mut Post) -> &mut String {
-        &mut model.content
     }
 }
 
@@ -96,6 +112,7 @@ pub struct Posts;
 
 impl Relation for Posts {
     type PrimaryKey = i64;
+    type PrimaryField = IdField;
     type Model = Post;
     type Fields = PostFieldSet;
     type Wrapper = KeyedPost;
