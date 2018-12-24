@@ -1,5 +1,13 @@
 pub trait FieldType {}
 
+pub trait FieldSetMarker {}
+
+pub struct Complete;
+pub struct Sparse;
+
+impl FieldSetMarker for Complete {}
+impl FieldSetMarker for Sparse {}
+
 pub trait Field {
     type Model;
     type Type: FieldType;
@@ -11,15 +19,17 @@ pub trait Field {
 
 pub trait FieldSet {
     type Model;
-
+    type Marker: FieldSetMarker;
 }
 
 impl<A, M> FieldSet for (A) where A: Field<Model = M> {
     type Model = M;
+    type Marker = Sparse;
 }
 
 impl<A, B, M> FieldSet for (A, B) where A: Field<Model = M>, B: Field<Model = M> {
     type Model = M;
+    type Marker = Sparse;
 }
 // impl<A, B, C, M> FieldSet<T, Model = M> for (A, B, C) where A: Field<Model = M>, B: Field<Model = M>, C: Field<Model = M> {}
 // impl<A, B, C, D, M> FieldSet<T, Model = M> for (A, B, C, D) where A: Field<Model = M>, B: Field<Model = M>, C: Field<Model = M>, D: Field<Model = M> {}
@@ -29,6 +39,14 @@ impl<A, B, M> FieldSet for (A, B) where A: Field<Model = M>, B: Field<Model = M>
 
 pub trait ToModel<F: FieldSet> {
     fn create(self) -> F::Model;
+}
+
+pub trait AssociatedFieldSet {
+    type Set: FieldSet;
+}
+
+impl<F> AssociatedFieldSet for F where F: FieldSet {
+    type Set = Self;
 }
 
 impl FieldType for String {}

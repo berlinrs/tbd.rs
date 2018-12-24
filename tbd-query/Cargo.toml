@@ -6,3 +6,10 @@ edition = "2018"
 
 [dependencies]
 tbd-relation = { path = "../tbd-relation" }
+tbd-gateway = { path = "../tbd-gateway" }
+tbd-fieldset = { path = "../tbd-fieldset" }
+
+[dev-dependencies]
+tbd-model-wrappers = { path = "../tbd-model-wrappers" }
+tbd-keyed = { path = "../tbd-keyed" }
+tbd-lifecycle = { path = "../tbd-lifecycle" }

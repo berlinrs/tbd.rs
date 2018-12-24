@@ -1,4 +1,7 @@
+pub mod compile;
+
 use tbd_relation::Relation;
+use tbd_fieldset::*;
 
 pub trait QueryMarker {}
 
@@ -11,7 +14,7 @@ impl QueryMarker for All {}
 impl QueryMarker for Incomplete {}
 
 pub trait Query {
-    type ReturnType;
+    type ReturnType: FieldSet;
     type QueryMarker: QueryMarker;
     type Parameters;
 
@@ -58,12 +61,12 @@ impl<PK, Q> Query for Find<PK, Q> where Q: Query {
     }
 }
 
-pub struct Select<M> {
-    m: std::marker::PhantomData<M>,
+pub struct Select<F: FieldSet> {
+    f: std::marker::PhantomData<F>,
 }
 
-impl<M> Query for Select<M> {
-    type ReturnType = M;
+impl<F> Query for Select<F> where F: FieldSet {
+    type ReturnType = F;
     type QueryMarker = Incomplete;
     type Parameters = ();
 
@@ -72,25 +75,28 @@ impl<M> Query for Select<M> {
     }
 }
 
-pub fn select<M>() -> Select<M> {
-    Select { m: std::marker::PhantomData }
+pub fn select<F>() -> Select<F::Set> where F: AssociatedFieldSet {
+    Select { f: std::marker::PhantomData }
 }
 
-impl<M> Select<M> {
-    pub fn from<R>(self) -> SelectFrom<R>
-        where R: Relation<Model = M> {
-            SelectFrom { relation: std::marker::PhantomData }
+impl<F> Select<F> where F: FieldSet {
+    pub fn from<R>(self) -> SelectFrom<F, R>
+        where R: Relation<Model = F::Model> {
+            SelectFrom { fieldset: std::marker::PhantomData, relation: std::marker::PhantomData }
     }
 }
 
-pub struct SelectFrom<R>
-    where R: Relation {
+pub struct SelectFrom<F, R>
+    where F: FieldSet,
+          R: Relation {
+    fieldset: std::marker::PhantomData<F>,
     relation: std::marker::PhantomData<R>,
 }
 
-impl<R> Query for SelectFrom<R>
-    where R: Relation {
-    type ReturnType = R::Model;
+impl<F, R> Query for SelectFrom<F, R>
+    where F: FieldSet,
+          R: Relation {
+    type ReturnType = F;
     type QueryMarker = All;
 
     type Parameters = ();
@@ -100,8 +106,9 @@ impl<R> Query for SelectFrom<R>
     }
 }
 
-impl<R> SelectFrom<R> 
-    where R: Relation {
+impl<F, R> SelectFrom<F, R> 
+    where F:FieldSet,
+          R: Relation {
 
     pub fn limit(self, max: usize) -> Limit<Self> {
         Limit { max: max, inner: self }

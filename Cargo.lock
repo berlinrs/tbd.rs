@@ -232,6 +232,11 @@ version = "0.1.0"
 name = "tbd-query"
 version = "0.1.0"
 dependencies = [
+ "tbd-fieldset 0.1.0",
+ "tbd-gateway 0.1.0",
+ "tbd-keyed 0.1.0",
+ "tbd-lifecycle 0.1.0",
+ "tbd-model-wrappers 0.1.0",
  "tbd-relation 0.1.0",
 ]
 
